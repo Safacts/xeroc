@@ -87,16 +87,24 @@
                 flex-wrap: wrap;
                 justify-content: center;
             }
+            
+            
+            
+            
+            
+            
+            
+            
             .card {
-                background-color: #fff;
-                border-radius: 10px;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-                margin: 20px;
-                padding: 20px;
-                width: 300px;
-                text-align: center;
-                display: inline-block;
-            }
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 20px auto; /* Changed this line */
+    padding: 20px;
+    width: 300px;
+    text-align: center;
+    display: block; /* Changed this line */
+}
             .card img {
                 width: 100%;
                 border-radius: 10px 10px 0 0;
@@ -353,6 +361,24 @@
 
 </div>
 
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Upload Your File</h5>
+
+        <!-- File Selection Bar -->
+        <div class="file-upload">
+            <input type="file" id="fileInput" class="form-control" style="border: 2px dashed #ccc; padding: 20px; text-align: center;" oninput="displayFileMetadata()">
+        </div>
+
+        <!-- Display File Metadata -->
+        <pre id="fileMetadata" style="font-family: monospace; margin-top: 10px;"></pre>
+
+        <!-- Upload Button -->
+        <button id="uploadButton" class="btn btn-primary mt-3" onclick="uploadFile()">Upload</button>
+    </div>
+</div>
+
+
 <!--
 <div class="content" id="cardsContainer">
     <div class="card" data-city="Wanparthy">
@@ -513,6 +539,35 @@
         }
     }
 
+function displayFileMetadata() {
+    const fileInput = document.getElementById('fileInput');
+    const fileMetadata = document.getElementById('fileMetadata');
+
+    // Clear previous metadata
+    fileMetadata.textContent = '';
+
+    if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const metadata = `File Name: ${file.name}\nFile Size: ${(file.size / 1024).toFixed(2)} KB\nFile Type: ${file.type}`;
+
+        fileMetadata.textContent = metadata;
+    }
+}
+
+function uploadFile() {
+    const fileInput = document.getElementById('fileInput');
+    const fileMetadata = document.getElementById('fileMetadata');
+
+    if (fileInput.files.length === 0) {
+        alert('Please select a file before uploading.');
+        return;
+    }
+
+    // Placeholder for actual upload logic
+    alert('File uploaded successfully:\n' + fileMetadata.textContent);
+}
+
+
     async function getCityFromCoordinates(lat, lng) {
         const response = await fetch(`https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lng}&key=${apiKey}`);
         const data = await response.json();
@@ -524,27 +579,4 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ country: 'India' }),
-        });
-        const data = await response.json();
-        const cities = data.data;
-        const cityList = document.getElementById('cities');
-        cities.forEach(city => {
-            const option = document.createElement('option');
-            option.value = city;
-            cityList.appendChild(option);
-        });
-    }
-
-    // Call detectLocation and populateCityOptions on page load
-    window.onload = async () => {
-        await populateCityOptions();
-        await detectLocation();
-    };
-
-    
-</script>
-
-</body>
-</html>
+          
