@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catering Management System</title>
+     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f8f9fa, #ffffff); /* Pale bright gradient */
+        }
+
+        .header {
+            padding: 20px;
+            background-color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-family: 'Great Vibes', cursive;
+            font-size: 36px;
+            margin: 0;
+        }
+
+        .search-bar {
+            flex-grow: 1;
+            margin-right: 20px;
+        }
+
+        .search-bar input[type="text"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px; /* Increased size of the search bar */
+        }
+
+        .header .name {
+            font-family: 'Great Vibes', cursive;
+            font-size: 36px;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #ffffff;
+            margin: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-item label {
+            flex: 0 0 150px; /* Fixed width for labels */
+            text-align: right;
+            color: #333;
+        }
+
+        .form-item select, .form-item input, .form-item textarea {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            font-size: 14px;
+            background-color: #fff;
+        }
+
+        .form-item textarea {
+            resize: vertical;
+        }
+
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background: url('data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjQ0NDIiBoZWlnaHQ9IjI0IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIgMTVsLTgtOCAxLjQxLTEuNDFMMTIgMTIuMTdMNy4yOCA3LjU5TDEyIDAgbDggOCAxLjQxLTEuNDFMMTIgMTIuMTdMNzguMjkgNi41OEwxMiAxNSIvPjwvc3ZnPg==') no-repeat right 10px center;
+            background-size: 16px;
+            padding-right: 30px;
+        }
+
+        select option {
+            padding: 10px;
+            background: #fff;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            border-color: #1e90ff;
+            outline: none;
+        }
+
+        .submit-button {
+            padding: 10px 20px;
+            border: none;
+            background: linear-gradient(135deg, #1e90ff, #00bfff);
+            color: #fff;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            background-size: 200% 200%;
+            animation: gradient 2s linear infinite;
+        }
+
+        .submit-button:hover {
+            background-position: right center;
+        }
+
+        @keyframes gradient {
+            0% { background-position: left center; }
+            100% { background-position: right center; }
+        }
+
+        .submit {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        #submit-button  {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            background-image: linear-gradient(135deg, #ff4d4d, #ff8080, #ff9a9e, #fbc2eb, #a6c1ee); /* Brighter gradient */
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            background-size: 200% 200%;
+            animation: gradientAnimation 3s ease infinite;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="search-bar">
+            <input type="text" placeholder="Search...">
+        </div>
+        <h1 class="name">Catering Management System</h1>
+    </div>
+    
+    <div class="container" id="container1">
+      
+        <div class="form-group">
+            <div class="form-item">
+                <label for="name">Name:</label>
+                <input type="text" id="name" required>
+            </div>
+            <div class="form-item">
+                <label for="service-hours-from">Service Hours From:</label>
+                <input type="time" id="service-hours-from" required>
+            </div>
+            <div class="form-item">
+                <label for="service-hours-to">Service Hours To:</label>
+                <input type="time" id="service-hours-to" required>
+            </div>
+            <div class="form-item">
+                <label for="cost-per-plate">Cost Charged Per Plate:</label>
+                <input type="number" id="cost-per-plate" min="1" required>
+            </div>
+            <div class="form-item">
+                <label for="veg-non-veg">Availability of Veg and Non-Veg:</label>
+                <select id="veg-non-veg" required>
+                    <option value="veg">Only Veg</option>
+                    <option value="veg-non-veg">Veg & Non-Veg</option>
+                </select>
+            </div>
+            <div class="form-item">
+                <label for="dishes">Available Dishes Names:</label>
+                <textarea id="dishes" rows="4" required></textarea>
+            </div>
+            <div class="form-item">
+                <label for="contact-number">Contact Number:</label>
+                <input type="tel" id="contact-number" required>
+            </div>
+            <div class="form-item">
+                <label for="email">Email Address:</label>
+                <input type="email" id="email" required>
+            </div>
+            <div class="form-item">
+                <label for="address">Address:</label>
+                <textarea id="address" rows="3" required></textarea>
+            </div>
+            <div class="form-item">
+                <label for="serving-availability">Serving Availability:</label>
+                <select id="serving-availability" required>
+                    <option value="servers-provided">Will Send Servers</option>
+                    <option value="no-servers-provided">No Servers Provided</option>
+                </select>
+            </div>
+            <div class="form-item" style="justify-content: center;">
+                <button class="submit-button" id="submit-button">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to retrieve CSRF token from cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.startsWith(name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Add event listener to submit button
+        document.getElementById("submit-button").addEventListener("click", function() {
+            const name = document.getElementById("name").value;
+            const serviceHoursFrom = document.getElementById("service-hours-from").value;
+            const serviceHoursTo = document.getElementById("service-hours-to").value;
+            const costPerPlate = document.getElementById("cost-per-plate").value;
+            const vegNonVeg = document.getElementById("veg-non-veg").value;
+            const dishes = document.getElementById("dishes").value;
+            const contactNumber = document.getElementById("contact-number").value;
+            const email = document.getElementById("email").value;
+            const address = document.getElementById("address").value;
+            const servingAvailability = document.getElementById("serving-availability").value;
+
+            // Get CSRF token
+            const csrftoken = getCookie('csrftoken');
+
+            // Make POST request with CSRF token
+            fetch('/api/add-caterer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({ 
+                    name, 
+                    serviceHoursFrom, 
+                    serviceHoursTo, 
+                    costPerPlate, 
+                    vegNonVeg, 
+                    dishes, 
+                    contactNumber, 
+                    email, 
+                    address, 
+                    servingAvailability 
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Caterer added successfully');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>
