@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catering Management</title>
-    <head>
+    <title>PAVAN TEJA INTERNET</title>
+    
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Catering Management</title>
+        <title>PAVAN TEJA INTERNET</title>
         <style>
             body {
                 font-family: Arial, sans-serif;
@@ -125,7 +125,7 @@
                 text-align: center;
                 position: relative;
                 width: 100%;
-                bottom: 0;
+                margin-top: auto; /* Pushes the footer to the bottom */
             }
             .modal {
                 display: none;
@@ -335,7 +335,7 @@
 <body>
 <header>
     <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="Search for catering services...">
+        <input type="text" id="searchInput" placeholder="Search for our services...">
         <div class="location-selector">
             <input list="cities" id="locationInput" placeholder="Select Location" onchange="filterCaterersByCity(this.value)">
             <datalist id="cities"></datalist>
@@ -375,12 +375,12 @@
     </div>
     <div class="card" data-city="Bangalore">
         <img src="https://tazlabaotelsvdmtfpui.supabase.co/storage/v1/object/public/caterer%20images/banglore%20caterers.png" alt="Catering Service 3">
-        <h2>Banglore catering services </h2>
+        <h2>Banglore our services </h2>
         <p>Contact: 73296854XX</p>
         <p>Email: Banglorecaterers@gmail.com</p>
         <p>City: Bangalore</p>
         <p>Price per Plate: ₹105<span id="price3">{{ price3 }}</span></p>
-        <button onclick="showOrderModal('Banglore catering services ')">Place Order</button>
+        <button onclick="showOrderModal('Banglore our services ')">Place Order</button>
     </div>
     <div class="card" data-city="Wanparthy">
         <img src="https://tazlabaotelsvdmtfpui.supabase.co/storage/v1/object/public/caterer%20images/royal%20caterers.png" alt="Catering Service 4">
@@ -405,7 +405,7 @@
 </div>
 
 <footer>
-    <p>&copy; 2024 Catering Management. All rights reserved.</p>
+    <p>&copy; 2024 PAVAN TEJA INTERNET. All rights reserved.</p>
     <p>Contact: info@cateringmanagement.com</p>
   
 </footer>
