@@ -341,21 +341,6 @@
             <datalist id="cities"></datalist>
         </div>
 
-       <!-- Conditionally display login/signup button or profile image -->
-       {% if user.is_authenticated %}
-       <div class="profile-image" onclick="location.href='{% url 'profile' %}'">
-            {% if user.profile.image %}
-                <img src="{{ user.profile.image.url }}" alt="Profile Image">
-            {% else %}
-                <div class="profile-initial">{{ user.username|slice:":1"|upper }}</div>
-            {% endif %}
-        </div>
-    
-       {% else %}
-       <button class="login-button" onclick="location.href='{% url 'login' %}'">
-           Login / Signup
-       </button>
-       {% endif %}
    </div>
    <h1>Catering Management System</h1>
 </header>
@@ -363,7 +348,7 @@
 
 
 <div class="start" id="start-button">
-    <button onclick="location.href='{% url 'detail' %}'">Get started</button>
+    <button onclick="location.href=''">Get started</button>
 
 
 </div>
@@ -421,29 +406,8 @@
 <footer>
     <p>&copy; 2024 Catering Management. All rights reserved.</p>
     <p>Contact: info@cateringmanagement.com</p>
-    {% if user.is_authenticated %}
-    <a href="{% url 'caterer' %}" class="footer-link">I AM A CATERER!!!</a>
-{% else %}
-    <a href="{% url 'login' %}" class="footer-link">I AM A CATERER!!!</a>
-{% endif %}
+  
 </footer>
-<!--
-<div id="loginModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            Login / Signup
-        </div>
-        <div class="modal-body">
-            <input type="email" id="email" placeholder="Email">
-            <input type="password" id="password" placeholder="Password">
-        </div>
-        <div class="modal-footer">
-           <!--- <button class="close" onclick="document.getElementById('loginModal').style.display='none'">Close</button>-
-            <button onclick="location.href='{% url 'login' %}'">Login / Signup </button>
-        </div>
-    </div>
-</div>  -->
-
 
 <div id="orderModal" class="modal">
     <div class="modal-content">
@@ -500,76 +464,6 @@
     function showOrderModal(serviceName) {
         document.getElementById('orderModalHeader').innerText = `Place Order - ${serviceName}`;
         document.getElementById('orderModal').style.display = 'block';
-    }
-
-
-    function isValidDateAndTime(date, time) {
-        const selectedDateTime = new Date(`${date}T${time}`);
-        const currentTime = new Date();
-        const threeHoursLater = new Date(currentTime.getTime() + 3 * 60 * 60 * 1000);
-        return selectedDateTime >= threeHoursLater;
-    }
-
-    function isValidPlatesCount(plates) {
-        return plates >= 50 && plates <= 1000;
-    }
-
-   
-    async function placeOrder() {
-        let foodType = document.getElementById('foodType').value;
-        let date = document.getElementById('date').value;
-        let time = document.getElementById('time').value;
-        let plates = document.getElementById('plates').value;
-        let serviceType = document.getElementById('serviceType').value;
-        let serviceName = document.getElementById('orderModalHeader').innerText.replace('Place Order - ', '');
-
-        if (!foodType || !date || !time || !plates || !serviceType) {
-            alert('Please fill in all fields.');
-            return;
-        }
-
-
-        if (!isValidDateAndTime(date, time)) {
-            alert('Order date and time must be at least 3 hours from now.');
-            return;
-        }
-
-        if (!isValidPlatesCount(plates)) {
-            alert('Number of plates must be between 50 and 1000.');
-            return;
-        }
-
-
-        // Retrieve the price per plate from the corresponding card
-        let pricePerPlate = parseFloat(document.getElementById('price' + serviceName.split(' ').join('').toLowerCase()).innerText);
-
-        // Calculate total cost
-        let totalCost = plates * pricePerPlate;
-
-        
-        let orderDetails = {
-            serviceName,
-            foodType,
-            date,
-            time,
-            plates,
-            serviceType,
-            totalCost  // Include total cost in the order details
-        };
-
-        console.log(orderDetails);
-        // Here you would send the orderDetails to the server for processing.
-        document.getElementById('orderModal').style.display = 'none';
-        alert('Order placed successfully!');
-    }
-    
-    // Function to calculate total cost based on plates
-    function calculateTotalCost() {
-        let plates = parseInt(document.getElementById('plates').value);
-        let serviceName = document.getElementById('orderModalHeader').innerText.replace('Place Order - ', '');
-        let pricePerPlate = parseFloat(document.getElementById('price' + serviceName.split(' ').join('').toLowerCase()).innerText);
-        let totalCost = plates * pricePerPlate;
-        document.getElementById('totalCost').innerText = totalCost.toFixed(2); // Display total cost
     }
     
 
