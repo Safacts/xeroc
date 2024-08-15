@@ -352,6 +352,24 @@
                 word-wrap: break-word; /* Ensures long words break to fit within the card */
                 text-align: left; /* Aligns the text to the left */
             }
+
+
+            #progressBar {
+                width: 100%;
+                background-color: #f3f3f3;
+                border-radius: 8px;
+                overflow: hidden;
+                margin-top: 10px;
+            }
+
+            #progressBar div {
+                height: 20px;
+                width: 0;
+                background-color: #4caf50;
+                text-align: center;
+                line-height: 20px;
+                color: white;
+            }
             
         </style>
 </head>
@@ -520,7 +538,7 @@
         await detectLocation();
     };
 
-  
+    
     function displayFileMetadata() {
         const fileInput = document.getElementById('fileInput');
         const fileMetadata = document.getElementById('fileMetadata');
@@ -537,24 +555,42 @@
         }
     }
 
+    
+
+  
     function uploadFile() {
         const fileInput = document.getElementById('fileInput');
-        const fileMetadata = document.getElementById('fileMetadata');
-
         if (fileInput.files.length === 0) {
             alert('Please select a file before uploading.');
             return;
         }
 
-        // Placeholder for actual upload logic
-        alert('File uploaded successfully:\n' + fileMetadata.textContent);
+        // Create a form and append the file
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        // Use Fetch API to send the file to the server
+        fetch("{% url 'upload_file' %}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}' // Ensure CSRF token is included
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('File uploaded successfully!');
+            } else {
+                alert('File upload failed.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred during file upload.');
+        });
     }
 
-    // Call detectLocation and populateCityOptions on page load
-    window.onload = async () => {
-        await populateCityOptions();
-        await detectLocation();
-    };
 </script>
 </body>
 </html>
