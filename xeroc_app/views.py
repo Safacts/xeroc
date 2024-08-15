@@ -17,6 +17,10 @@ def homepage(request):
 def success_view(request):
     return render(request, 'success.html')
 
+
+def details(request):
+    return render(request, 'files.html')
+
 def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
@@ -50,3 +54,23 @@ def upload_file(request):
         form = UploadFileForm()
     
     return render(request, 'home.html', {'form': form})
+
+def list_files_view(request):
+    try:
+        response = supabase.storage.from_('files').list()
+        if isinstance(response, list):
+            files = response
+        else:
+            files = []
+
+        file_data = [{'name': file['name'], 'url': f"{SUPABASE_URL}/storage/v1/object/public/files/{file['name']}"} for file in files]
+        return JsonResponse(file_data, safe=False)
+    except Exception as e:
+        print(f"Exception during listing files: {e}")
+        return JsonResponse({'error': str(e)}, status=500)
+
+def delete_file_view(request, file_name):
+    response = supabase.storage.from_('files').remove([file_name])
+    if response.get('error'):
+        return JsonResponse({'error': response['error']}, status=400)
+    return JsonResponse({'message': 'File deleted successfully'})

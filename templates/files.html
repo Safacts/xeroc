@@ -96,17 +96,37 @@
             border-color: #ff9a9e; /* Highlighted border color on focus */
             outline: none; /* Remove default outline */
         }
+
+        .file-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .file-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+        .file-list li a {
+            flex-grow: 1;
+        }
+        .file-list li button {
+            margin-left: 10px;
+        }
+
     </style>
 </head>
-<body>
+<body onload="showContainer('fileContainer')">
     <div class="header">
         <div class="search-bar">
-            <input type="text" placeholder="Search...">
+            <input type="text" id="searchInput" placeholder="Search files..." oninput="filterFiles()">
         </div>
         <div class="buttons">
-            <button>Button 1</button>
-            <button>Button 2</button>
-            <button>Button 3</button>
+            <button onclick="showContainer('container1')">Show Container 1</button>
+            <button onclick="showContainer('container2')">Show Container 2</button>
+            <button onclick="showContainer('container3')">Show Container 3</button>
+            <button onclick="showContainer('fileContainer')">Manage Files</button>
         </div>
     </div>
     
@@ -155,11 +175,95 @@
             <button>Button Green</button>
         </div>
     </div>
-</body>
-<script>
-    // Hide Container 2 and Container 3
-    document.getElementById("container2").style.display = "none";
-    document.getElementById("container3").style.display = "none";
-</script>
 
-</html>
+    <div class="container" id="fileContainer">
+        <h2>Manage Uploaded Files</h2>
+        <ul class="file-list" id="fileList">
+            <!-- Files will be dynamically added here -->
+        </ul>
+    </div>
+
+    <script>
+        // Hide all containers initially
+        document.getElementById("container1").style.display = "none";
+        document.getElementById("container2").style.display = "none";
+        document.getElementById("container3").style.display = "none";
+        document.getElementById("fileContainer").style.display = "none";
+
+        // Function to show a specific container
+        function showContainer(containerId) {
+            // Hide all containers
+            document.getElementById("container1").style.display = "none";
+            document.getElementById("container2").style.display = "none";
+            document.getElementById("container3").style.display = "none";
+            document.getElementById("fileContainer").style.display = "none";
+
+            // Show the selected container
+            document.getElementById(containerId).style.display = "block";
+
+            // Load files if fileContainer is shown
+            if (containerId === 'fileContainer') {
+                loadFiles();
+            }
+        }
+
+        // Function to load files from the server
+        async function loadFiles() {
+            const response = await fetch('/files/');
+            const files = await response.json();
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+
+            files.forEach(file => {
+                const li = document.createElement('li');
+                const link = document.createElement('a');
+                link.href = file.url;
+                link.target = '_blank';
+                link.textContent = file.name;
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.onclick = () => deleteFile(file.name);
+
+                const modifyButton = document.createElement('button');
+                modifyButton.textContent = 'Modify';
+                modifyButton.onclick = () => modifyFile(file.name);
+
+                li.appendChild(link);
+                li.appendChild(deleteButton);
+                li.appendChild(modifyButton);
+                fileList.appendChild(li);
+            });
+        }
+
+        // Function to filter files
+        function filterFiles() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            const ul = document.getElementById('fileList');
+            const li = ul.getElementsByTagName('li');
+
+            for (let i = 0; i < li.length; i++) {
+                const a = li[i].getElementsByTagName('a')[0];
+                const txtValue = a.textContent || a.innerText;
+                li[i].style.display = txtValue.toLowerCase().indexOf(filter) > -1 ? '' : 'none';
+            }
+        }
+
+        // Function to delete a file
+        async function deleteFile(fileName) {
+            const response = await fetch(`/delete-file/${fileName}`, { method: 'DELETE' });
+            if (response.ok) {
+                loadFiles();
+            } else {
+                alert('Failed to delete file');
+            }
+        }
+
+        // Function to modify a file (placeholder)
+        function modifyFile(fileName) {
+            // Implement file modification logic here
+            alert(`Modify file: ${fileName}`);
+        }
+    </script>
+    </html>
