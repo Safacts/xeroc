@@ -579,4 +579,43 @@ function uploadFile() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-          
+            },
+
+body: JSON.stringify({ country: 'India' }), });
+
+const data = await response.json();
+
+const cities = data.data;
+
+const cityList = document.getElementById(
+
+'cities');
+
+cities.forEach(city => {
+
+const option = document.createElement(
+
+'option');
+
+});
+
+option.value = city;
+
+cityList.appendChild(option);
+
+}
+
+// Call detectLocation and populateCityOptions on p
+
+age load
+
+window.onload = async () => {
+
+await populateCityOptions();
+
+await detectLocation();
+
+};
+</script>
+</body>
+</html>
