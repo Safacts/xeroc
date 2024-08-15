@@ -17,23 +17,36 @@ def homepage(request):
 def success_view(request):
     return render(request, 'success.html')
 
-
 def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             file = request.FILES['file']
-            # Upload file to Supabase storage
             file_name = file.name
-            response = supabase.storage().from_('your-bucket').upload(file_name, file.read())
-            
-            if response.get('error'):
-                return render(request, 'home.html', {'form': form, 'error': response['error']})
-            
-            file_url = f"{SUPABASE_URL}/storage/v1/object/public/your-bucket/{file_name}"
-            UploadedFile.objects.create(file_name=file_name, file_url=file_url)
-            return redirect('success_view')  # Define your success view
+            file_size = file.size
+            print(f"Uploading file: {file_name}, Size: {file_size} bytes")
+
+            try:
+                # Read file content
+                file_content = file.read()
+                print("File read successfully")
+
+                # Upload file to Supabase storage
+                response = supabase.storage.from_('files').upload(file_name, file_content)
+                response_data = response.json()  # Convert response to JSON
+                print(f"Supabase response: {response_data}")
+
+                if response_data.get('error'):
+                    print(f"Error uploading file: {response_data['error']}")
+                    return render(request, 'home.html', {'form': form, 'error': response_data['error']})
+
+                file_url = f"{SUPABASE_URL}/storage/v1/object/public/files/{file_name}"
+                UploadedFile.objects.create(file_name=file_name, file_url=file_url)
+                return redirect('success_view')
+            except Exception as e:
+                print(f"Exception during file upload: {e}")
+                return render(request, 'home.html', {'form': form, 'error': str(e)})
     else:
         form = UploadFileForm()
     
-    return render(request, 'syccess.html', {'form': form})
+    return render(request, 'home.html', {'form': form})

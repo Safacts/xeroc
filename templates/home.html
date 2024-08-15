@@ -400,18 +400,23 @@
         <h5 class="card-title">Upload Your File</h5>
 
         <!-- File Selection Bar -->
-        <div class="file-upload">
-            <input type="file" id="fileInput" class="form-control" style="border: 2px dashed #ccc; padding: 20px; text-align: center;" oninput="displayFileMetadata()">
-        </div>
+        <form id="uploadForm" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="file-upload">
+                <input type="file" id="fileInput" class="form-control" style="border: 2px dashed #ccc; padding: 20px; text-align: center;" oninput="displayFileMetadata()">
+            </div>
 
-        <!-- Display File Metadata -->
-        <pre id="fileMetadata" style="font-family: monospace; margin-top: 10px;"></pre>
+            <!-- Display File Metadata -->
+            <pre id="fileMetadata" style="font-family: monospace; margin-top: 10px;"></pre>
 
-        <!-- Upload Button -->
-        <button id="uploadButton" class="btn btn-primary mt-3" onclick="uploadFile()">Upload</button>
+            <!-- Progress Bar -->
+            <div id="progressBar"><div></div></div>
+
+            <!-- Upload Button -->
+            <button id="uploadButton" class="btn btn-primary mt-3" type="button" onclick="uploadFile()">Upload</button>
+        </form>
     </div>
 </div>
-
 
 <!-- 
 <div class="content" id="cardsContainer">
@@ -538,7 +543,6 @@
         await detectLocation();
     };
 
-    
     function displayFileMetadata() {
         const fileInput = document.getElementById('fileInput');
         const fileMetadata = document.getElementById('fileMetadata');
@@ -557,39 +561,77 @@
 
     
 
-  
-    function uploadFile() {
+    
+    async function uploadFile() {
         const fileInput = document.getElementById('fileInput');
+        const fileMetadata = document.getElementById('fileMetadata');
+        const progressBar = document.getElementById('progressBar').firstElementChild;
+
         if (fileInput.files.length === 0) {
             alert('Please select a file before uploading.');
             return;
         }
 
-        // Create a form and append the file
+        const file = fileInput.files[0];
         const formData = new FormData();
-        formData.append('file', fileInput.files[0]);
+        formData.append('file', file);
 
-        // Use Fetch API to send the file to the server
-        fetch("{% url 'upload_file' %}", {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}' // Ensure CSRF token is included
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/upload/', true);
+        xhr.setRequestHeader('X-CSRFToken', getCookie('csrftoken'));
+
+        xhr.upload.onprogress = function(event) {
+            if (event.lengthComputable) {
+                const percentComplete = (event.loaded / event.total) * 100;
+                progressBar.style.width = percentComplete + '%';
+                progressBar.textContent = Math.round(percentComplete) + '%';
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('File uploaded successfully!');
+        };
+
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                alert('File uploaded successfully:\n' + fileMetadata.textContent);
             } else {
+                console.error('Upload failed with status:', xhr.status);
                 alert('File upload failed.');
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred during file upload.');
-        });
+        };
+
+        xhr.onerror = function() {
+            console.error('An error occurred during the transaction');
+            alert('File upload failed.');
+        };
+
+        xhr.send(formData);
     }
+
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    xhr.upload.onprogress = function(event) {
+        if (event.lengthComputable) {
+            const percentComplete = (event.loaded / event.total) * 100;
+            console.log(`Progress: ${percentComplete}%`); // Debugging statement
+            progressBar.style.width = percentComplete + '%';
+            progressBar.textContent = Math.round(percentComplete) + '%';
+        }
+    };
+    
+    
+    
 
 </script>
 </body>
