@@ -96,14 +96,14 @@
             
             
             .card {
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin: 20px auto; /* Changed this line */
-    padding: 20px;
-    width: 300px;
-    text-align: center;
-    display: block; /* Changed this line */
+                background-color: #fff;
+                border-radius: 10px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                margin: 20px auto; /* Changed this line */
+                padding: 20px;
+                width: 300px;
+                text-align: center;
+                display: block; /* Changed this line */
 }
             .card img {
                 width: 100%;
@@ -336,6 +336,22 @@
             }
 
             
+
+
+
+
+
+
+
+            
+           
+            #fileMetadata {
+                font-family: monospace;
+                margin-top: 10px;
+                white-space: pre-wrap; /* Ensures the text wraps within the card */
+                word-wrap: break-word; /* Ensures long words break to fit within the card */
+                text-align: left; /* Aligns the text to the left */
+            }
             
         </style>
 </head>
@@ -379,7 +395,7 @@
 </div>
 
 
-<!--
+<!-- 
 <div class="content" id="cardsContainer">
     <div class="card" data-city="Wanparthy">
         <img src="https://tazlabaotelsvdmtfpui.supabase.co/storage/v1/object/public/caterer%20images/suraj%20caterers.png" alt="Catering Service 1">
@@ -390,83 +406,15 @@
         <p>Price per Plate: ₹105<span id="price1">{{ price1 }}</span></p>
         <button onclick="showOrderModal('SURAJ CATERERS')">Place Order</button>
     </div>
-    <div class="card" data-city="Hyderabad">
-        <img src="https://tazlabaotelsvdmtfpui.supabase.co/storage/v1/object/public/caterer%20images/jyothi%20caterers.png" alt="Catering Service 2">
-        <h2>Jyothi Catering Service </h2>
-        <p>Contact:89563244XX</p>
-        <p>Email: jyothicatering@outlook.com</p>
-        <p>City: Hyderabad</p>
-        <p>Price per Plate: ₹105<span id="price2">{{ price2 }}</span></p>
-        <button onclick="showOrderModal('Jyothi Catering Service')">Place Order</button>
-    </div>
-    <div class="card" data-city="Bangalore">
-        <img src="https://tazlabaotelsvdmtfpui.supabase.co/storage/v1/object/public/caterer%20images/banglore%20caterers.png" alt="Catering Service 3">
-        <h2>Banglore our services </h2>
-        <p>Contact: 73296854XX</p>
-        <p>Email: Banglorecaterers@gmail.com</p>
-        <p>City: Bangalore</p>
-        <p>Price per Plate: ₹105<span id="price3">{{ price3 }}</span></p>
-        <button onclick="showOrderModal('Banglore our services ')">Place Order</button>
-    </div>
-    <div class="card" data-city="Wanparthy">
-        <img src="https://tazlabaotelsvdmtfpui.supabase.co/storage/v1/object/public/caterer%20images/royal%20caterers.png" alt="Catering Service 4">
-        <h2>Royal caterers</h2>
-        <p>Contact:864359XX</p>
-        <p>Email: royal003@yahoo.com</p>
-        <p>City: Wanparthy</p>
-        <p>Price per Plate: ₹105<span id="price4">{{ price4 }}</span></p>
-        <button onclick="showOrderModal('Royal caterers<')">Place Order</button>
-    </div>
-    <div class="card" data-city="Hyderabad">
-        <img src="https://tazlabaotelsvdmtfpui.supabase.co/storage/v1/object/public/caterer%20images/yash_caterers.png?t=2024-06-21T13%3A37%3A47.513Z" alt="Catering Service 5">
-        <h2>Yash caterers</h2>
-        <p>Contact: 63954326XX</p>
-        <p>Email: caterersyashvant@gmail.com</p>
-        <p>City: Hyderabad</p>
-        <p>Price per Plate: ₹105<span id="price5">{{ price5 }}</span></p>
-        <button onclick="showOrderModal('Yash caterers')">Place Order</button>
-    </div>
-    <!-- Add more cards as needed -->
-    -->
-</div>
-
+    <!- Add more cards as needed 
+   </div>
+-->
 <footer>
     <p>&copy; 2024 PAVAN TEJA INTERNET. All rights reserved.</p>
     <p>Contact: info@cateringmanagement.com</p>
   
 </footer>
 
-<div id="orderModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header" id="orderModalHeader">
-            Place Order
-        </div>
-        <div class="modal-body">
-            <label for="foodType">Food Type:</label>
-            <select id="foodType">
-                <option value="veg">Vegetarian</option>
-                <option value="non-veg">Non-Vegetarian</option>
-            </select>
-            <label for="date">Date:</label>
-            <input type="date" id="date">
-            <label for="time">Time:</label>
-            <input type="time" id="time">
-            <label for="plates">Number of Plates:</label>
-            <input type="number" id="plates" min="1" onchange="calculateTotalCost()">
-            <!-- Display total cost dynamically -->
-            <p>Total Cost: ₹<span id="totalCost">0.00</span></p>
-            <label for="serviceType">Service Type:</label>
-            <select id="serviceType">
-                <option value="self-service">Self Service</option>
-                <option value="full-service">Full Service</option>
-            </select>
-        </div>
-        <div class="modal-footer">
-            <button class="close" onclick="document.getElementById('orderModal').style.display='none'">Close</button>
-            <button class="save" onclick="placeOrder()">Place Order</button>
-        </div>
-    </div>
-</div>
 
 
 <script>
@@ -538,36 +486,7 @@
             alert('Geolocation is not supported by this browser.');
         }
     }
-
-function displayFileMetadata() {
-    const fileInput = document.getElementById('fileInput');
-    const fileMetadata = document.getElementById('fileMetadata');
-
-    // Clear previous metadata
-    fileMetadata.textContent = '';
-
-    if (fileInput.files.length > 0) {
-        const file = fileInput.files[0];
-        const metadata = `File Name: ${file.name}\nFile Size: ${(file.size / 1024).toFixed(2)} KB\nFile Type: ${file.type}`;
-
-        fileMetadata.textContent = metadata;
-    }
-}
-
-function uploadFile() {
-    const fileInput = document.getElementById('fileInput');
-    const fileMetadata = document.getElementById('fileMetadata');
-
-    if (fileInput.files.length === 0) {
-        alert('Please select a file before uploading.');
-        return;
-    }
-
-    // Placeholder for actual upload logic
-    alert('File uploaded successfully:\n' + fileMetadata.textContent);
-}
-
-
+        
     async function getCityFromCoordinates(lat, lng) {
         const response = await fetch(`https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lng}&key=${apiKey}`);
         const data = await response.json();
@@ -580,42 +499,62 @@ function uploadFile() {
             headers: {
                 'Content-Type': 'application/json',
             },
+            body: JSON.stringify({ country: 'India' }),
+        });
 
-body: JSON.stringify({ country: 'India' }), });
+        const data = await response.json();
+        const cities = data.data;
+        const cityList = document.getElementById('cities');
 
-const data = await response.json();
+        cities.forEach(city => {
+            const option = document.createElement('option');
+            option.value = city;
+            option.textContent = city; // Added this line to set the text content of the option
+            cityList.appendChild(option);
+        });
+    }
 
-const cities = data.data;
+    // Call detectLocation and populateCityOptions on page load
+    window.onload = async () => {
+        await populateCityOptions();
+        await detectLocation();
+    };
 
-const cityList = document.getElementById(
+  
+    function displayFileMetadata() {
+        const fileInput = document.getElementById('fileInput');
+        const fileMetadata = document.getElementById('fileMetadata');
 
-'cities');
+        // Clear previous metadata
+        fileMetadata.textContent = '';
 
-cities.forEach(city => {
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            const uploadDate = new Date().toLocaleDateString();
+            const metadata = `File Name: ${file.name}\nFile Size: ${(file.size / 1024).toFixed(2)} KB\nFile Type: ${file.type}\nUpload Date: ${uploadDate}`;
 
-const option = document.createElement(
+            fileMetadata.textContent = metadata;
+        }
+    }
 
-'option');
+    function uploadFile() {
+        const fileInput = document.getElementById('fileInput');
+        const fileMetadata = document.getElementById('fileMetadata');
 
-});
+        if (fileInput.files.length === 0) {
+            alert('Please select a file before uploading.');
+            return;
+        }
 
-option.value = city;
+        // Placeholder for actual upload logic
+        alert('File uploaded successfully:\n' + fileMetadata.textContent);
+    }
 
-cityList.appendChild(option);
-
-}
-
-// Call detectLocation and populateCityOptions on p
-
-age load
-
-window.onload = async () => {
-
-await populateCityOptions();
-
-await detectLocation();
-
-};
+    // Call detectLocation and populateCityOptions on page load
+    window.onload = async () => {
+        await populateCityOptions();
+        await detectLocation();
+    };
 </script>
 </body>
 </html>
