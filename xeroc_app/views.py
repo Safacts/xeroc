@@ -21,6 +21,7 @@ def success_view(request):
 def details(request):
     return render(request, 'files.html')
 
+
 def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
@@ -36,7 +37,7 @@ def upload_file(request):
                 print("File read successfully")
 
                 # Upload file to Supabase storage
-                response = supabase.storage.from_('files').upload(file_name, file_content)
+                response = supabase.storage.from_('flies').upload(file_name, file_content)
                 response_data = response.json()  # Convert response to JSON
                 print(f"Supabase response: {response_data}")
 
@@ -44,7 +45,7 @@ def upload_file(request):
                     print(f"Error uploading file: {response_data['error']}")
                     return render(request, 'home.html', {'form': form, 'error': response_data['error']})
 
-                file_url = f"{SUPABASE_URL}/storage/v1/object/public/files/{file_name}"
+                file_url = f"{SUPABASE_URL}/storage/v1/object/public/flies/{file_name}"
                 UploadedFile.objects.create(file_name=file_name, file_url=file_url)
                 return redirect('success_view')
             except Exception as e:
@@ -57,38 +58,37 @@ def upload_file(request):
 
 def list_files_view(request):
     try:
-        response = supabase.storage.from_('files').list()
+        response = supabase.storage.from_('flies').list()
         if isinstance(response, list):
-            files = response
+            flies = response
         else:
-            files = []
+            flies = []
 
         file_data = []
-        for file in files:
-            signed_url_response = supabase.storage.from_('files').create_signed_url(file['name'], 60)  # URL valid for 60 seconds
-            if signed_url_response.get('signedURL'):
-                file_data.append({'name': file['name'], 'url': signed_url_response['signedURL']})
-            else:
-                file_data.append({'name': file['name'], 'url': f"{SUPABASE_URL}/storage/v1/object/public/files/{file['name']}"})
+        for file in flies:
+            file_data.append({'name': file['name'], 'url': f"{SUPABASE_URL}/storage/v1/object/public/flies/{file['name']}"})
 
         return JsonResponse(file_data, safe=False)
     except Exception as e:
-        print(f"Exception during listing files: {e}")
+        print(f"Exception during listing flies: {e}")
         return JsonResponse({'error': str(e)}, status=500)
-
+ 
 def delete_file_view(request, file_name):
-    response = supabase.storage.from_('files').remove([file_name])
+    response = supabase.storage.from_('flies').remove([file_name])
     if response.get('error'):
         return JsonResponse({'error': response['error']}, status=400)
     return JsonResponse({'message': 'File deleted successfully'})
 
-
 def download_file_view(request, file_name):
     try:
-        file_url = f"{SUPABASE_URL}/storage/v1/object/public/files/{file_name}"
-        response = supabase.storage.from_('files').download(file_name)
+        file_url = f"{SUPABASE_URL}/storage/v1/object/public/flies/{file_name}"
+        response = supabase.storage.from_('flies').download(file_name)
         if response.status_code == 200:
-            return HttpResponse(response.content, content_type='application/octet-stream')
+            content_type = 'application/pdf' if file_name.endswith('.pdf') else 'application/octet-stream'
+            response = HttpResponse(response.content, content_type=content_type)
+            response['Content-Disposition'] = f'inline; filename="{file_name}"'
+            response['X-Frame-Options'] = 'SAMEORIGIN'  # Allow embedding in iframes
+            return response
         else:
             return JsonResponse({'error': 'File not found'}, status=404)
     except Exception as e:

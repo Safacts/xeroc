@@ -236,7 +236,7 @@
             const files = await response.json();
             const fileList = document.getElementById('fileList');
             fileList.innerHTML = '';
-        
+            
             files.forEach(file => {
                 const li = document.createElement('li');
                 const link = document.createElement('a');
@@ -244,14 +244,13 @@
                 link.target = '_blank';
                 link.textContent = file.name;
         
-                // Open supported formats in a new tab for preview
                 link.onclick = (event) => {
                     event.preventDefault();
                     const supportedFormats = ['pdf', 'jpg', 'jpeg', 'png', 'txt'];
                     const fileExtension = file.name.split('.').pop().toLowerCase();
         
                     if (supportedFormats.includes(fileExtension)) {
-                        window.open(file.url, '_blank');
+                        previewFile(file.url, fileExtension);
                     } else {
                         downloadFile(file.url);
                     }
@@ -259,25 +258,41 @@
         
                 const deleteButton = document.createElement('button');
                 deleteButton.textContent = 'Delete';
-                deleteButton.className = 'delete'; // Apply delete button style
+                deleteButton.className = 'delete';
                 deleteButton.onclick = () => deleteFile(file.name);
         
                 const modifyButton = document.createElement('button');
                 modifyButton.textContent = 'Modify';
-                modifyButton.className = 'modify'; // Apply modify button style
+                modifyButton.className = 'modify';
                 modifyButton.onclick = () => modifyFile(file.name);
         
                 const downloadButton = document.createElement('button');
                 downloadButton.textContent = 'Download/Print';
-                downloadButton.className = 'styled-button'; // Apply styled button class
+                downloadButton.className = 'styled-button';
                 downloadButton.onclick = () => handleFile(file.url, file.name);
         
                 li.appendChild(link);
                 li.appendChild(deleteButton);
                 li.appendChild(modifyButton);
-                li.appendChild(downloadButton); // Add download/print button
+                li.appendChild(downloadButton);
                 fileList.appendChild(li);
             });
+        }
+        
+
+        // Function to preview files
+        function previewFile(fileUrl, fileExtension) {
+            const previewWindow = window.open('', '_blank');
+
+            if (fileExtension === 'pdf') {
+                previewWindow.document.write(`<iframe src="${fileUrl}" width="100%" height="100%" style="border:none;"></iframe>`);
+            } else if (['jpg', 'jpeg', 'png', 'txt'].includes(fileExtension)) {
+                previewWindow.document.write(`<img src="${fileUrl}" alt="${fileUrl}" style="max-width: 100%; height: auto;">`);
+            } else {
+                previewWindow.document.write('Preview not supported for this file type.');
+            }
+
+            previewWindow.document.close();
         }
 
         // Function to filter files
@@ -310,23 +325,75 @@
             const fileExtension = fileName.split('.').pop().toLowerCase();
         
             if (supportedFormats.includes(fileExtension)) {
-                const printWindow = window.open(fileUrl, '_blank');
+                const printWindow = window.open('', '_blank');
         
-                if (printWindow) {
-                    printWindow.onload = function () {
-                        printWindow.focus();
-                        printWindow.print();
-                    };
-                } else {
-                    alert('Popup blocked! Please allow popups for this website.');
+                // Define the content of the print window
+                let printContent = '';
+        
+                if (fileExtension === 'pdf') {
+                    printContent = `<iframe src="${fileUrl}" width="100%" height="100%" style="border:none;"></iframe>`;
+                } else if (['jpg', 'jpeg', 'png'].includes(fileExtension)) {
+                    printContent = `<img src="${fileUrl}" alt="${fileName}" style="max-width: 100%; height: auto;">`;
+                } else if (fileExtension === 'txt') {
+                    // Fetch the text file content and add it to the print window
+                    fetch(fileUrl)
+                        .then(response => response.text())
+                        .then(text => {
+                            printWindow.document.body.innerHTML = `
+                                <pre style="font-size: 16px; white-space: pre-wrap;">${text}</pre>
+                                <button id="downloadButton" style="padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">Download</button>`;
+                            printWindow.document.close();
+                            printWindow.focus();
+        
+                            // Add event listener for the download button
+                            printWindow.document.getElementById('downloadButton').addEventListener('click', function () {
+                                downloadFile(fileUrl);
+                            });
+                        });
                 }
+        
+                // If the file is not a text file, directly print the content
+                if (fileExtension !== 'txt') {
+                    printWindow.document.write(`
+                        <html>
+                        <head>
+                            <title>Print ${fileName}</title>
+                            <style>
+                                body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+                                img { max-width: 100%; height: auto; }
+                                iframe { width: 100%; height: 100vh; }
+                            </style>
+                        </head>
+                        <body>
+                            ${printContent}
+                            <button id="downloadButton" style="padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 20px;">Download</button>
+                        </body>
+                        </html>
+                    `);
+                    printWindow.document.close();
+                    printWindow.focus();
+        
+                    // Add event listener for the download button
+                    printWindow.document.getElementById('downloadButton').addEventListener('click', function () {
+                        downloadFile(fileUrl);
+                    });
+                }
+        
+                // Automatically trigger the print dialog after content is loaded
+                printWindow.onload = function () {
+                    printWindow.print();
+                };
             } else {
                 downloadFile(fileUrl);
             }
         }
+        
+        
+        
 
 
-        // Function to download a file
+
+        // Function to download a file      
         function downloadFile(fileUrl) {
             const link = document.createElement('a');
             link.href = fileUrl;
@@ -334,7 +401,7 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-        }     
+        }
 
         // Function to modify a file (placeholder)
         function modifyFile(fileName) {
