@@ -3,7 +3,7 @@ from supabase import create_client, Client
 from .forms import UploadFileForm
 from .models import UploadedFile
 import os
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse, Http404
 
 # Initialize Supabase client
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
@@ -63,7 +63,14 @@ def list_files_view(request):
         else:
             files = []
 
-        file_data = [{'name': file['name'], 'url': f"{SUPABASE_URL}/storage/v1/object/public/files/{file['name']}"} for file in files]
+        file_data = []
+        for file in files:
+            signed_url_response = supabase.storage.from_('files').create_signed_url(file['name'], 60)  # URL valid for 60 seconds
+            if signed_url_response.get('signedURL'):
+                file_data.append({'name': file['name'], 'url': signed_url_response['signedURL']})
+            else:
+                file_data.append({'name': file['name'], 'url': f"{SUPABASE_URL}/storage/v1/object/public/files/{file['name']}"})
+
         return JsonResponse(file_data, safe=False)
     except Exception as e:
         print(f"Exception during listing files: {e}")
@@ -74,3 +81,16 @@ def delete_file_view(request, file_name):
     if response.get('error'):
         return JsonResponse({'error': response['error']}, status=400)
     return JsonResponse({'message': 'File deleted successfully'})
+
+
+def download_file_view(request, file_name):
+    try:
+        file_url = f"{SUPABASE_URL}/storage/v1/object/public/files/{file_name}"
+        response = supabase.storage.from_('files').download(file_name)
+        if response.status_code == 200:
+            return HttpResponse(response.content, content_type='application/octet-stream')
+        else:
+            return JsonResponse({'error': 'File not found'}, status=404)
+    except Exception as e:
+        print(f"Exception during file download: {e}")
+        return JsonResponse({'error': str(e)}, status=500)

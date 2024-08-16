@@ -229,34 +229,49 @@
                 loadFiles();
             }
         }
+
         // Function to load files from the server
         async function loadFiles() {
             const response = await fetch('/files/');
             const files = await response.json();
             const fileList = document.getElementById('fileList');
             fileList.innerHTML = '';
-
+        
             files.forEach(file => {
                 const li = document.createElement('li');
                 const link = document.createElement('a');
                 link.href = file.url;
                 link.target = '_blank';
                 link.textContent = file.name;
-
+        
+                // Open supported formats in a new tab for preview
+                link.onclick = (event) => {
+                    event.preventDefault();
+                    const supportedFormats = ['pdf', 'jpg', 'jpeg', 'png', 'txt'];
+                    const fileExtension = file.name.split('.').pop().toLowerCase();
+        
+                    if (supportedFormats.includes(fileExtension)) {
+                        window.open(file.url, '_blank');
+                    } else {
+                        downloadFile(file.url);
+                    }
+                };
+        
                 const deleteButton = document.createElement('button');
                 deleteButton.textContent = 'Delete';
                 deleteButton.className = 'delete'; // Apply delete button style
                 deleteButton.onclick = () => deleteFile(file.name);
-
+        
                 const modifyButton = document.createElement('button');
                 modifyButton.textContent = 'Modify';
                 modifyButton.className = 'modify'; // Apply modify button style
                 modifyButton.onclick = () => modifyFile(file.name);
-
+        
                 const downloadButton = document.createElement('button');
                 downloadButton.textContent = 'Download/Print';
-                downloadButton.onclick = () => printFile(file.url);
-
+                downloadButton.className = 'styled-button'; // Apply styled button class
+                downloadButton.onclick = () => handleFile(file.url, file.name);
+        
                 li.appendChild(link);
                 li.appendChild(deleteButton);
                 li.appendChild(modifyButton);
@@ -264,7 +279,6 @@
                 fileList.appendChild(li);
             });
         }
-
 
         // Function to filter files
         function filterFiles() {
@@ -294,10 +308,10 @@
         function handleFile(fileUrl, fileName) {
             const supportedFormats = ['pdf', 'jpg', 'jpeg', 'png', 'txt'];
             const fileExtension = fileName.split('.').pop().toLowerCase();
-
+        
             if (supportedFormats.includes(fileExtension)) {
                 const printWindow = window.open(fileUrl, '_blank');
-
+        
                 if (printWindow) {
                     printWindow.onload = function () {
                         printWindow.focus();
@@ -311,6 +325,7 @@
             }
         }
 
+
         // Function to download a file
         function downloadFile(fileUrl) {
             const link = document.createElement('a');
@@ -319,7 +334,7 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-        }        
+        }     
 
         // Function to modify a file (placeholder)
         function modifyFile(fileName) {
