@@ -401,14 +401,8 @@
         <form id="uploadForm" method="post" enctype="multipart/form-data">
             {% csrf_token %}
 
-             <!-- User Name Input -->
-             <div class="search-bar">
-                <input type="text" id="userNameInput" class="form-control" placeholder="Enter your name" required>
-            </div>
-
-            <br>
-
-            <br>
+          
+          
             <div class="file-upload">
                 <input type="file" id="fileInput" class="form-control" style="border: 2px dashed #ccc; padding: 20px; text-align: center;" oninput="displayFileMetadata()">
             </div>
