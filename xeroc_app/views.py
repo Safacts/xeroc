@@ -23,6 +23,8 @@ def success_view(request):
 def details(request):
     return render(request, 'files.html')
 
+def password(request):
+    return render(request, 'password.html')
 
 def sanitize_filename(filename):
     # Replace spaces with underscores and remove any special characters except periods and underscores
