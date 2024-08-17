@@ -52,6 +52,19 @@
                 background-color: #f0f0f0;
                 margin-right: 10px;
             }
+
+            .name-bar input {
+                width: 277px;
+                height: 19px;
+                padding: 10px;
+                font-size: 16px;
+                border: 1px solid #ccc;
+                border-radius: 20px;
+                outline: none;
+                background-color: #f0f0f0;
+                margin-right: 0px;
+            }
+            
             .location-selector {
                 margin-right: 20px;
             }
@@ -415,6 +428,63 @@
                     transform: translateX(100%);
                 }
             }
+
+            .file-upload {
+                width: 300px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                position: relative;
+                z-index: 2;
+            }
+            
+            .file-upload input[type="file"] {
+                width: 85%;
+                padding: 20px;
+                font-size: 16px;
+                border: 2px dashed #ccc;
+                border-radius: 20px;
+                outline: none;
+                background-color: #f9f9f9;
+                text-align: center;
+                cursor: pointer;
+                transition: border-color 0.3s ease, background-color 0.3s ease;
+            }
+            
+            .file-upload input[type="file"]:hover {
+                border-color: #ff4d4d; /* Match gradient colors */
+                background-color: #ffe6e6; /* Lighten background on hover */
+            }
+            
+            .file-upload input[type="file"]::-webkit-file-upload-button {
+                display: none; /* Hide the default file input button */
+            }
+            
+            .file-upload::before {
+                content: 'Drag or Select a File';
+                display: block;
+                font-size: 16px;
+                color: #333;
+                margin-bottom: 10px;
+                transition: color 0.3s ease;
+            }
+            
+            .file-upload input[type="file"]::file-selector-button {
+                background-image: linear-gradient(135deg, #ff4d4d, #ff8080, #ff9a9e, #fbc2eb, #a6c1ee);
+                color: white;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 25px;
+                cursor: pointer;
+                font-size: 16px;
+                transition: background-color 0.3s ease, transform 0.3s ease;
+            }
+            
+            .file-upload input[type="file"]::file-selector-button:hover {
+                background-color: #ff9a9e;
+                transform: scale(1.05);
+            }
+            
             
 
 
@@ -451,16 +521,18 @@
             {% csrf_token %}
 
              <!-- User Name Input -->
-             <div class="search-bar">
+             <div class="name-bar">
                 <input type="text" id="userNameInput" class="form-control" placeholder="Enter your name" required>
             </div>
 
-            <br>
+            
 
             <br>
             <div class="file-upload">
                 <input type="file" id="fileInput" class="form-control" style="border: 2px dashed #ccc; padding: 20px; text-align: center;" oninput="displayFileMetadata()">
             </div>
+            
+            <br>
 
             <!-- Display File Metadata -->
             <pre id="fileMetadata" style="font-family: monospace; margin-top: 10px;"></pre>
