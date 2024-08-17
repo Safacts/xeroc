@@ -232,51 +232,64 @@
 
         // Function to load files from the server
         async function loadFiles() {
-            const response = await fetch('/files/');
-            const files = await response.json();
-            const fileList = document.getElementById('fileList');
-            fileList.innerHTML = '';
+            try {
+                const response = await fetch('/files/');
+                if (!response.ok) throw new Error('Network response was not ok');
+
+                const files = await response.json();
+                const fileList = document.getElementById('fileList');
+                fileList.innerHTML = '';
+
+                if (files.length === 0) {
+                    fileList.innerHTML = '<li>No files found.</li>';
+                    return;
+                }
+        
+                
+                files.forEach(file => {
+                    const li = document.createElement('li');
+                    const link = document.createElement('a');
+                    link.href = file.url;
+                    link.target = '_blank';
+                    link.textContent = `${file.name} (Uploaded by: ${file.username})`; // Display username
             
-            files.forEach(file => {
-                const li = document.createElement('li');
-                const link = document.createElement('a');
-                link.href = file.url;
-                link.target = '_blank';
-                link.textContent = file.name;
-        
-                link.onclick = (event) => {
-                    event.preventDefault();
-                    const supportedFormats = ['pdf', 'jpg', 'jpeg', 'png', 'txt'];
-                    const fileExtension = file.name.split('.').pop().toLowerCase();
-        
-                    if (supportedFormats.includes(fileExtension)) {
-                        previewFile(file.url, fileExtension);
-                    } else {
-                        downloadFile(file.url);
-                    }
-                };
-        
-                const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Delete';
-                deleteButton.className = 'delete';
-                deleteButton.onclick = () => deleteFile(file.name);
-        
-                const modifyButton = document.createElement('button');
-                modifyButton.textContent = 'Modify';
-                modifyButton.className = 'modify';
-                modifyButton.onclick = () => modifyFile(file.name);
-        
-                const downloadButton = document.createElement('button');
-                downloadButton.textContent = 'Download/Print';
-                downloadButton.className = 'styled-button';
-                downloadButton.onclick = () => handleFile(file.url, file.name);
-        
-                li.appendChild(link);
-                li.appendChild(deleteButton);
-                li.appendChild(modifyButton);
-                li.appendChild(downloadButton);
-                fileList.appendChild(li);
-            });
+                    link.onclick = (event) => {
+                        event.preventDefault();
+                        const supportedFormats = ['pdf', 'jpg', 'jpeg', 'png', 'txt'];
+                        const fileExtension = file.name.split('.').pop().toLowerCase();
+            
+                        if (supportedFormats.includes(fileExtension)) {
+                            previewFile(file.url, fileExtension);
+                        } else {
+                            downloadFile(file.url);
+                        }
+                    };
+            
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.className = 'delete';
+                    deleteButton.onclick = () => deleteFile(file.name);
+            
+                    const modifyButton = document.createElement('button');
+                    modifyButton.textContent = 'Modify';
+                    modifyButton.className = 'modify';
+                    modifyButton.onclick = () => modifyFile(file.name);
+            
+                    const downloadButton = document.createElement('button');
+                    downloadButton.textContent = 'Download/Print';
+                    downloadButton.className = 'styled-button';
+                    downloadButton.onclick = () => handleFile(file.url, file.name);
+            
+                    li.appendChild(link);
+                    li.appendChild(deleteButton);
+                    li.appendChild(modifyButton);
+                    li.appendChild(downloadButton);
+                    fileList.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Error loading files:', error);
+                alert('Failed to load files');
+            }
         }
         
 

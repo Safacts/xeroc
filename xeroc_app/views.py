@@ -4,6 +4,7 @@ from .forms import UploadFileForm
 from .models import UploadedFile
 import os
 from django.http import JsonResponse, HttpResponse, Http404
+from django.views.decorators.http import require_http_methods
 
 # Initialize Supabase client
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
@@ -21,15 +22,17 @@ def success_view(request):
 def details(request):
     return render(request, 'files.html')
 
-
+@require_http_methods(["GET", "POST"])
 def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             file = request.FILES['file']
+            user_name = form.cleaned_data['user_name']  # Get the user name from the form
             file_name = file.name
             file_size = file.size
-            print(f"Uploading file: {file_name}, Size: {file_size} bytes")
+            print(f"Uploading file: {file_name}, Size: {file_size} bytes, Uploaded by: {user_name}")
+
 
             try:
                 # Read file content
@@ -46,7 +49,9 @@ def upload_file(request):
                     return render(request, 'home.html', {'form': form, 'error': response_data['error']})
 
                 file_url = f"{SUPABASE_URL}/storage/v1/object/public/flies/{file_name}"
-                UploadedFile.objects.create(file_name=file_name, file_url=file_url)
+
+                # Save the file information and user name in the database
+                UploadedFile.objects.create(user_name=user_name, file_name=file_name, file_url=file_url)
                 return redirect('success_view')
             except Exception as e:
                 print(f"Exception during file upload: {e}")
@@ -57,8 +62,12 @@ def upload_file(request):
     return render(request, 'home.html', {'form': form})
 
 def list_files_view(request):
+    user_name = request.GET.get('user_name', '').lower()  # Get user name from query params
     try:
         response = supabase.storage.from_('flies').list()
+
+        
+        
         if isinstance(response, list):
             flies = response
         else:
@@ -66,7 +75,7 @@ def list_files_view(request):
 
         file_data = []
         for file in flies:
-            file_data.append({'name': file['name'], 'url': f"{SUPABASE_URL}/storage/v1/object/public/flies/{file['name']}"})
+            file_data.append({'name': file['name'], 'url': f"{SUPABASE_URL}/storage/v1/object/public/flies/{file['name']}" })
 
         return JsonResponse(file_data, safe=False)
     except Exception as e:
@@ -94,3 +103,9 @@ def download_file_view(request, file_name):
     except Exception as e:
         print(f"Exception during file download: {e}")
         return JsonResponse({'error': str(e)}, status=500)
+    
+
+def search_files_by_user(request):
+    user_name = request.GET.get('user_name')
+    files = UploadedFile.objects.filter(user_name__icontains=user_name)
+    return render(request, 'files_list.html', {'files': files})
