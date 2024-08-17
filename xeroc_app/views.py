@@ -4,6 +4,8 @@ from .forms import UploadFileForm
 from .models import UploadedFile
 import os
 from django.http import JsonResponse, HttpResponse, Http404
+from django.views.decorators.http import require_http_methods
+import re
 
 # Initialize Supabase client
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
@@ -22,14 +24,25 @@ def details(request):
     return render(request, 'files.html')
 
 
+def sanitize_filename(filename):
+    # Replace spaces with underscores and remove any special characters except periods and underscores
+    filename = re.sub(r'[^\w\.\-]', '_', filename)
+    return filename
+
+@require_http_methods(["GET", "POST"])
 def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             file = request.FILES['file']
-            file_name = file.name
+            user_name = form.cleaned_data['user_name'].lower()  # Get the user name from the form and make it lowercase
+            original_file_name = file.name
+            sanitized_file_name = sanitize_filename(original_file_name)
             file_size = file.size
-            print(f"Uploading file: {file_name}, Size: {file_size} bytes")
+            print(f"Uploading file: {original_file_name}, Size: {file_size} bytes, Uploaded by: {user_name}")
+
+            # Create a new file name with the username as part of the path or name
+            unique_file_name = f"{user_name}_{sanitized_file_name}"
 
             try:
                 # Read file content
@@ -37,7 +50,7 @@ def upload_file(request):
                 print("File read successfully")
 
                 # Upload file to Supabase storage
-                response = supabase.storage.from_('flies').upload(file_name, file_content)
+                response = supabase.storage.from_('flies').upload(unique_file_name, file_content)
                 response_data = response.json()  # Convert response to JSON
                 print(f"Supabase response: {response_data}")
 
@@ -45,8 +58,10 @@ def upload_file(request):
                     print(f"Error uploading file: {response_data['error']}")
                     return render(request, 'home.html', {'form': form, 'error': response_data['error']})
 
-                file_url = f"{SUPABASE_URL}/storage/v1/object/public/flies/{file_name}"
-                UploadedFile.objects.create(file_name=file_name, file_url=file_url)
+                file_url = f"{SUPABASE_URL}/storage/v1/object/public/flies/{unique_file_name}"
+
+                # Save the file information and user name in the database
+                UploadedFile.objects.create(user_name=user_name, file_name=unique_file_name, file_url=file_url)
                 return redirect('success_view')
             except Exception as e:
                 print(f"Exception during file upload: {e}")
@@ -57,8 +72,12 @@ def upload_file(request):
     return render(request, 'home.html', {'form': form})
 
 def list_files_view(request):
+    user_name = request.GET.get('user_name', '').lower()  # Get user name from query params
     try:
         response = supabase.storage.from_('flies').list()
+
+        
+        
         if isinstance(response, list):
             flies = response
         else:
@@ -66,7 +85,7 @@ def list_files_view(request):
 
         file_data = []
         for file in flies:
-            file_data.append({'name': file['name'], 'url': f"{SUPABASE_URL}/storage/v1/object/public/flies/{file['name']}"})
+            file_data.append({'name': file['name'], 'url': f"{SUPABASE_URL}/storage/v1/object/public/flies/{file['name']}" })
 
         return JsonResponse(file_data, safe=False)
     except Exception as e:
@@ -94,3 +113,9 @@ def download_file_view(request, file_name):
     except Exception as e:
         print(f"Exception during file download: {e}")
         return JsonResponse({'error': str(e)}, status=500)
+    
+
+def search_files_by_user(request):
+    user_name = request.GET.get('user_name')
+    files = UploadedFile.objects.filter(user_name__icontains=user_name)
+    return render(request, 'files_list.html', {'files': files})

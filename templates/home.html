@@ -564,9 +564,15 @@
 
     
     async function uploadFile() {
+        const userNameInput = document.getElementById('userNameInput');
         const fileInput = document.getElementById('fileInput');
         const fileMetadata = document.getElementById('fileMetadata');
         const progressBar = document.getElementById('progressBar').firstElementChild;
+
+        if (userNameInput.value.trim() === '') {
+            alert('Please enter your name before uploading.');
+            return;
+        }
 
         if (fileInput.files.length === 0) {
             alert('Please select a file before uploading.');
@@ -576,6 +582,7 @@
         const file = fileInput.files[0];
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('user_name', userNameInput.value);
 
         const xhr = new XMLHttpRequest();
         xhr.open('POST', '/upload/', true);
