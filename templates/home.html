@@ -736,13 +736,11 @@
                 progressBar.style.width = '100%';
                 progressBar.textContent = 'Upload Complete!';
             
-                // Show an alert indicating successful upload
-                alert('File uploaded successfully:\n' + fileMetadata.textContent);
             
                 // Start the 5-second reset process after displaying "Upload Complete!"
                 setTimeout(function() {
                     // Show a 5-second reset countdown
-                    var resetCounter = 5;
+                    var resetCounter = 3;
                     var resetInterval = setInterval(function() {
                         resetCounter--;
                         if (resetCounter > 0) {
@@ -752,12 +750,12 @@
             
                             // Once the countdown ends, reset the progress bar and file input
                             progressBar.style.width = '0%';
-                            progressBar.textContent = 'Ready for next file';
+                            
             
                             // Clear the file input
                             fileInput.value = ""; // Clear the file input
                             fileMetadata.textContent = ''; // Clear the file metadata
-                            
+                            progressBar.textContent = "";
                             // Ensure the label updates correctly
                             var fileLabel = document.querySelector('.file-upload input[type="file"]');
                             fileLabel.previousElementSibling.textContent = "Choose another file";
