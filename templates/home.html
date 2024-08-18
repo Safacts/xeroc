@@ -142,10 +142,11 @@
             footer {
                 background-color: #333;
                 color: white;
-                padding: 10px;
+                padding: -100px;
                 text-align: center;
                 position: relative;
                 width: 100%;
+                
                 margin-top: auto; /* Pushes the footer to the bottom */
             }
             .modal {
@@ -484,8 +485,32 @@
                 background-color: #ff9a9e;
                 transform: scale(1.05);
             }
+
             
             
+            
+            @media (max-width: 768px) {
+                .search-bar {
+                    display: none;
+                }
+            
+                .location-selector {
+                    display: none;
+                }
+            
+                header {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+            
+             
+                   
+                
+                
+                
+                
+                
+            }
 
 
             
