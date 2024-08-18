@@ -563,7 +563,8 @@
 -->
 <footer>
     <p>&copy; 2024 PAVAN TEJA INTERNET. All rights reserved.</p>
-    <p>Contact: info@cateringmanagement.com</p>
+    <p>Contact: safacts001@gmail.com</p>
+    
   
 </footer>
 
@@ -729,10 +730,48 @@
         };
 
         xhr.onloadend = function() {
-            setTimeout(() => {
+          
+            if (xhr.status === 200) {
+                // Show the "Upload Complete!" message right after the upload finishes
                 progressBar.style.width = '100%';
                 progressBar.textContent = 'Upload Complete!';
-            }, 200); // Adding a small delay to sync with the completion of the upload
+            
+                // Show an alert indicating successful upload
+                alert('File uploaded successfully:\n' + fileMetadata.textContent);
+            
+                // Start the 5-second reset process after displaying "Upload Complete!"
+                setTimeout(function() {
+                    // Show a 5-second reset countdown
+                    var resetCounter = 5;
+                    var resetInterval = setInterval(function() {
+                        resetCounter--;
+                        if (resetCounter > 0) {
+                            progressBar.textContent = "Resetting in " + resetCounter + "...";
+                        } else {
+                            clearInterval(resetInterval);
+            
+                            // Once the countdown ends, reset the progress bar and file input
+                            progressBar.style.width = '0%';
+                            progressBar.textContent = 'Ready for next file';
+            
+                            // Clear the file input
+                            fileInput.value = ""; // Clear the file input
+                            fileMetadata.textContent = ''; // Clear the file metadata
+                            
+                            // Ensure the label updates correctly
+                            var fileLabel = document.querySelector('.file-upload input[type="file"]');
+                            fileLabel.previousElementSibling.textContent = "Choose another file";
+                            // Update the file input label to "Choose another file"
+                            document.querySelector('.file-upload label').textContent = "Choose another file";
+                        }
+                    }, 1000); // 1-second interval for the countdown
+            
+                }, 2000); // Delay before starting the reset countdown (2 seconds)
+            } else {
+                console.error('Upload failed with status:', xhr.status);
+                alert('File upload failed.');
+            }
+            
         };
 
         xhr.onload = function() {
