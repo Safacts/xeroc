@@ -307,15 +307,15 @@
             printIframe.style.height = '0';
             printIframe.style.border = 'none';
             document.body.appendChild(printIframe);
-
+        
             printIframe.onload = function () {
                 printIframe.contentWindow.focus();
                 printIframe.contentWindow.print();
                 document.body.removeChild(printIframe); // Clean up after printing
             };
-
+        
             let printContent = '';
-
+        
             if (fileExtension === 'pdf') {
                 printContent = `<iframe src="${fileUrl}" width="100%" height="100%" style="border:none;"></iframe>`;
             } else if (['jpg', 'jpeg', 'png'].includes(fileExtension)) {
@@ -325,10 +325,23 @@
                     .then(response => response.text())
                     .then(text => {
                         printContent = `<pre style="font-size: 16px; white-space: pre-wrap;">${text}</pre>`;
+                        printIframe.contentDocument.open();
                         printIframe.contentDocument.write(`
                             <html>
                             <head>
-                                <title>${fileName}</title>
+                                <style>
+                                    @media print {
+                                        title, a[href] {
+                                            display: none;
+                                        }
+                                        @page {
+                                            margin: 0;
+                                        }
+                                        body {
+                                            margin: 1cm;
+                                        }
+                                    }
+                                </style>
                             </head>
                             <body>${printContent}</body>
                             </html>
@@ -337,13 +350,26 @@
                     });
                 return;
             }
-
+        
             // If the file is not a text file, directly print the content
             if (fileExtension !== 'txt') {
+                printIframe.contentDocument.open();
                 printIframe.contentDocument.write(`
                     <html>
                     <head>
-                        <title>${fileName}</title>
+                        <style>
+                            @media print {
+                                title, a[href] {
+                                    display: none;
+                                }
+                                @page {
+                                    margin: 0;
+                                }
+                                body {
+                                    margin: 1cm;
+                                }
+                            }
+                        </style>
                     </head>
                     <body>${printContent}</body>
                     </html>
@@ -351,6 +377,8 @@
                 printIframe.contentDocument.close();
             }
         }
+        
+        
 
         
         
