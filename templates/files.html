@@ -301,10 +301,18 @@
 
         // Function to print a file
         function printFile(fileUrl, fileName, fileExtension) {
-            const printWindow = window.open('', '_blank');
+            const printIframe = document.createElement('iframe');
+            printIframe.style.position = 'absolute';
+            printIframe.style.width = '0';
+            printIframe.style.height = '0';
+            printIframe.style.border = 'none';
+            document.body.appendChild(printIframe);
 
-            // Add temporary content to avoid 'about:blank'
-            printWindow.document.body.innerHTML = '<p>Loading...</p>';
+            printIframe.onload = function () {
+                printIframe.contentWindow.focus();
+                printIframe.contentWindow.print();
+                document.body.removeChild(printIframe); // Clean up after printing
+            };
 
             let printContent = '';
 
@@ -316,29 +324,37 @@
                 fetch(fileUrl)
                     .then(response => response.text())
                     .then(text => {
-                        printWindow.document.body.innerHTML = `<pre style="font-size: 16px; white-space: pre-wrap;">${text}</pre>`;
-                        printWindow.document.close();
-                        printWindow.focus();
-                        printWindow.print();
+                        printContent = `<pre style="font-size: 16px; white-space: pre-wrap;">${text}</pre>`;
+                        printIframe.contentDocument.write(`
+                            <html>
+                            <head>
+                                <title>${fileName}</title>
+                            </head>
+                            <body>${printContent}</body>
+                            </html>
+                        `);
+                        printIframe.contentDocument.close();
                     });
                 return;
             }
 
             // If the file is not a text file, directly print the content
             if (fileExtension !== 'txt') {
-                printWindow.document.write(`
+                printIframe.contentDocument.write(`
                     <html>
-                    <head></head>
+                    <head>
+                        <title>${fileName}</title>
+                    </head>
                     <body>${printContent}</body>
                     </html>
                 `);
-                printWindow.document.close();
-                printWindow.focus();
-                printWindow.onload = function () {
-                    printWindow.print();
-                };
+                printIframe.contentDocument.close();
             }
         }
+
+        
+        
+        
 
         // Function to download a file
         function downloadFile(fileUrl) {
