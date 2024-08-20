@@ -6,6 +6,7 @@ import os
 from django.http import JsonResponse, HttpResponse, Http404
 from django.views.decorators.http import require_http_methods
 import re
+import urllib.parse
 
 # Initialize Supabase client
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
@@ -45,14 +46,18 @@ def upload_file(request):
 
             # Create a new file name with the username as part of the path or name
             unique_file_name = f"{user_name}_{sanitized_file_name}"
+            unique_file_name = urllib.parse.quote(unique_file_name)  # URL-encode the file name
 
             try:
                 # Read file content
                 file_content = file.read()
                 print("File read successfully")
 
+                content_type = file.content_type
                 # Upload file to Supabase storage
-                response = supabase.storage.from_('flies').upload(unique_file_name, file_content)
+                response = supabase.storage.from_('flies').upload(unique_file_name, file_content, {
+                    'content-type': content_type
+                })
                 response_data = response.json()  # Convert response to JSON
                 print(f"Supabase response: {response_data}")
 

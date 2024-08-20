@@ -573,6 +573,8 @@
     </div>
 </div>
 
+
+
 <!-- 
 <div class="content" id="cardsContainer">
     <div class="card" data-city="Wanparthy">
@@ -737,7 +739,7 @@
         const file = fileInput.files[0];
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('user_name', userNameInput.value);
+        formData.append('user_name', encodeURIComponent(userNameInput.value));
 
         const xhr = new XMLHttpRequest();
         xhr.open('POST', '/upload/', true);
@@ -761,6 +763,10 @@
                 // Show the "Upload Complete!" message right after the upload finishes
                 progressBar.style.width = '100%';
                 progressBar.textContent = 'Upload Complete!';
+
+                // Debugging step: Log the response
+                console.log('Upload successful:', xhr.responseText);
+
             
             
                 // Start the 5-second reset process after displaying "Upload Complete!"
@@ -801,6 +807,9 @@
         xhr.onload = function() {
             if (xhr.status === 200) {
                 alert('File uploaded successfully:\n' + fileMetadata.textContent);
+                // Debugging step: Display the URL of the uploaded file
+                const uploadedFileUrl = JSON.parse(xhr.responseText).file_url;
+                console.log('Uploaded file URL:', uploadedFileUrl);
             } else {
                 console.error('Upload failed with status:', xhr.status);
                 alert('File upload failed.');
