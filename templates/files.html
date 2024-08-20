@@ -244,46 +244,35 @@
                     fileList.innerHTML = '<li>No files found.</li>';
                     return;
                 }
-        
-                
+
                 files.forEach(file => {
                     const li = document.createElement('li');
                     const link = document.createElement('a');
                     link.href = file.url;
                     link.target = '_blank';
                     link.textContent = `${file.name} `; // Display username
-            
-                    link.onclick = (event) => {
-                        event.preventDefault();
-                        const supportedFormats = ['pdf', 'jpg', 'jpeg', 'png', 'txt'];
-                        const fileExtension = file.name.split('.').pop().toLowerCase();
-            
-                        if (supportedFormats.includes(fileExtension)) {
-                            previewFile(file.url, fileExtension);
-                        } else {
-                            downloadFile(file.url);
-                        }
-                    };
-            
-                    const deleteButton = document.createElement('button');
-                    deleteButton.textContent = 'Delete';
-                    deleteButton.className = 'delete';
-                    deleteButton.onclick = () => deleteFile(file.name);
-            
-                    const modifyButton = document.createElement('button');
-                    modifyButton.textContent = 'Modify';
-                    modifyButton.className = 'modify';
-                    modifyButton.onclick = () => modifyFile(file.name);
-            
+
+                    // Add buttons for each file
+                    const printButton = document.createElement('button');
+                    printButton.textContent = 'Print';
+                    printButton.className = 'styled-button';
+                    printButton.onclick = () => handleFileAction(file.url, file.name, 'print');
+
+
                     const downloadButton = document.createElement('button');
-                    downloadButton.textContent = 'Download/Print';
-                    downloadButton.className = 'styled-button';
-                    downloadButton.onclick = () => handleFile(file.url, file.name);
-            
+                    downloadButton.textContent = 'Download';
+                    downloadButton.className = 'delete'; // Previously delete, now for download
+                    downloadButton.onclick = () => handleFileAction(file.url, file.name, 'download');
+
+                    const previewButton = document.createElement('button');
+                    previewButton.textContent = 'Preview';
+                    previewButton.className = 'modify'; // Previously modify, now for preview
+                    previewButton.onclick = () => handleFileAction(file.url, file.name, 'preview');
+
                     li.appendChild(link);
-                    li.appendChild(deleteButton);
-                    li.appendChild(modifyButton);
+                    li.appendChild(printButton);
                     li.appendChild(downloadButton);
+                    li.appendChild(previewButton);
                     fileList.appendChild(li);
                 });
             } catch (error) {
@@ -291,23 +280,105 @@
                 alert('Failed to load files');
             }
         }
+
+        // Unified function to handle file actions (print, download, preview)
+        function handleFileAction(fileUrl, fileName, action) {
+            const supportedFormats = ['pdf', 'jpg', 'jpeg', 'png', 'txt'];
+            const fileExtension = fileName.split('.').pop().toLowerCase();
+
+            if (action === 'download' || !supportedFormats.includes(fileExtension)) {
+                downloadFile(fileUrl);
+                return;
+            }
+
+            if (action === 'print') {
+                printFile(fileUrl, fileName, fileExtension);
+            } else if (action === 'preview') {
+                previewFile(fileUrl, fileName, fileExtension);
+            }
+        }
         
 
-        // Function to preview files
-        function previewFile(fileUrl, fileExtension) {
+        // Function to print a file
+        function printFile(fileUrl, fileName, fileExtension) {
+            const printWindow = window.open('', '_blank');
+
+            // Add temporary content to avoid 'about:blank'
+            printWindow.document.body.innerHTML = '<p>Loading...</p>';
+
+            let printContent = '';
+
+            if (fileExtension === 'pdf') {
+                printContent = `<iframe src="${fileUrl}" width="100%" height="100%" style="border:none;"></iframe>`;
+            } else if (['jpg', 'jpeg', 'png'].includes(fileExtension)) {
+                printContent = `<img src="${fileUrl}" alt="${fileName}" style="max-width: 100%; height: auto;">`;
+            } else if (fileExtension === 'txt') {
+                fetch(fileUrl)
+                    .then(response => response.text())
+                    .then(text => {
+                        printWindow.document.body.innerHTML = `<pre style="font-size: 16px; white-space: pre-wrap;">${text}</pre>`;
+                        printWindow.document.close();
+                        printWindow.focus();
+                        printWindow.print();
+                    });
+                return;
+            }
+
+            // If the file is not a text file, directly print the content
+            if (fileExtension !== 'txt') {
+                printWindow.document.write(`
+                    <html>
+                    <head></head>
+                    <body>${printContent}</body>
+                    </html>
+                `);
+                printWindow.document.close();
+                printWindow.focus();
+                printWindow.onload = function () {
+                    printWindow.print();
+                };
+            }
+        }
+
+        // Function to download a file
+        function downloadFile(fileUrl) {
+            fetch(fileUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.blob();
+                })
+                .then(blob => {
+                    const downloadUrl = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = downloadUrl;
+                    link.download = fileUrl.split('/').pop(); // Retain original filename
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(downloadUrl); // Clean up the object URL
+                })
+                .catch(error => {
+                    console.error('Error downloading file:', error);
+                    alert('Failed to download file');
+                });
+        }
+        
+
+        // Function to preview a file
+        function previewFile(fileUrl, fileName, fileExtension) {
             const previewWindow = window.open('', '_blank');
-            
 
             if (fileExtension === 'pdf') {
                 previewWindow.document.write(`<iframe src="${fileUrl}" width="100%" height="100%" style="border:none;"></iframe>`);
             } else if (['jpg', 'jpeg', 'png', 'txt'].includes(fileExtension)) {
-                previewWindow.document.write(`<img src="${fileUrl}" alt="${fileUrl}" style="max-width: 100%; height: auto;">`);
+                previewWindow.document.write(`<img src="${fileUrl}" alt="${fileName}" style="max-width: 100%; height: auto;">`);
             } else {
-                previewWindow.document.write('Preview not supported for this file type.');
+                downloadFile(fileUrl); // For unsupported formats, download instead
             }
 
             previewWindow.document.close();
         }
+
 
         // Function to filter files
         function filterFiles() {
@@ -323,92 +394,6 @@
             }
         }
 
-        // Function to delete a file
-        async function deleteFile(fileName) {
-            const response = await fetch(`/delete-file/${fileName}`, { method: 'DELETE' });
-            if (response.ok) {
-                loadFiles();
-            } else {
-                alert('Failed to delete file');
-            }
-        }
-        
-        // Function to handle file download/print
-        function handleFile(fileUrl, fileName) {
-            const supportedFormats = ['pdf', 'jpg', 'jpeg', 'png', 'txt'];
-            const fileExtension = fileName.split('.').pop().toLowerCase();
-        
-            if (supportedFormats.includes(fileExtension)) {
-                const printWindow = window.open('', '_blank');
-        
-                // Define the content of the print window
-                let printContent = '';
-        
-                if (fileExtension === 'pdf') {
-                    printContent = `<iframe src="${fileUrl}" width="100%" height="100%" style="border:none;"></iframe>`;
-                } else if (['jpg', 'jpeg', 'png'].includes(fileExtension)) {
-                    printContent = `<img src="${fileUrl}" alt="${fileName}" style="max-width: 100%; height: auto;">`;
-                } else if (fileExtension === 'txt') {
-                    // Fetch the text file content and add it to the print window
-                    fetch(fileUrl)
-                        .then(response => response.text())
-                        .then(text => {
-                            printWindow.document.body.innerHTML = `
-                                <pre style="font-size: 16px; white-space: pre-wrap;">${text}</pre>`;
-                                
-                            printWindow.document.close();
-                            printWindow.focus();
-        
-                        });
-                    
-                }
-        
-                // If the file is not a text file, directly print the content
-                if (fileExtension !== 'txt') {
-                    printWindow.document.write(`
-                        <html>
-                        <head>
-                           
-                        </head>
-                        <body>
-                            ${printContent}
-                            
-                        </body>
-                        </html>
-                    `);
-                    printWindow.document.close();
-                    printWindow.focus();
-                }
-                
-        
-                // Automatically trigger the print dialog after content is loaded
-                printWindow.onload = function () {
-                    printWindow.print();
-                };
-            } else {
-                downloadFile(fileUrl);
-            }
-        }
-        
-        
-        
 
-
-
-        // Function to download a file      
-        function downloadFile(fileUrl) {
-            const link = document.createElement('a');
-            link.href = fileUrl;
-            link.download = fileUrl.split('/').pop();
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // Function to modify a file (placeholder)
-        function modifyFile(fileName) {
-            // Implement file modification logic here
-            alert(`Modify file: ${fileName}`);
-        }
     </script>
     </html>
