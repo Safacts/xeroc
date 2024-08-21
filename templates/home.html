@@ -514,6 +514,134 @@
             }
 
 
+
+
+
+
+
+
+
+
+
+
+
+            
+        /* Add pure white background spacer */
+        .spacer {
+            background-color: #b2beb5;
+            height: 300px;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.6);
+        }
+
+        
+        .footer {
+            background: #000;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            margin-top: auto;
+            font-size: 0.9rem;
+        }
+
+        .spacer {
+            background-color: #fff;
+            height: 125px;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            display: flex;
+            justify-content: center; /* Center content horizontally */
+            align-items: center; /* Center content vertically */
+        }
+        
+        .soc-med {
+            display: flex;
+            justify-content: center; /* Align images at the center horizontally */
+            align-items: center; /* Align images at the center vertically */
+        }
+        
+       
+        .wat-img {
+            width: auto; /* Set the width to auto to maintain aspect ratio */
+            height: 85px; /* Set the height of all images */
+            margin: 0 0px; /* Add margin between images */
+            
+            
+            object-fit: contain; /* Ensure the entire image is visible within the specified dimensions */
+        }
+        
+        
+
+        /* Media Query for mobile devices */
+        @media only screen and (max-width: 768px) {
+            .product-card {
+                width: calc(100% - 20px);
+            }
+
+            /* Add pure white background spacer */
+            .spacer {
+                background-color: #b2beb5;
+                height: 100px;
+                border-top-left-radius: 20px;
+                border-top-right-radius: 20px;
+            }
+
+            /* newly added <<<<<<<<<<<<<<< */
+
+          
+
+            .spacer {
+                background-color: #fff;
+                height: 95px; /* Adjust the height to accommodate the .msg div */
+                border-top-left-radius: 20px;
+                border-top-right-radius: 20px;
+                display: grid;
+                justify-content: center;
+                align-items: center;
+                position: relative;
+                box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.7);
+            }
+    
+            .msg {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                position: absolute;
+               
+                left: -6%;
+                width: 100%;
+                height: 100%;
+                font-size: 10px; /* Set the font size to 14px */
+            }
+
+
+            .soc-med {
+                display: flex;
+                justify-content: center; /* Align images at the center horizontally */
+                align-items: center; /* Align images at the center vertically */
+                margin-left: 140px;
+            }
+            
+           
+            .wat-img {
+                width: auto; /* Set the width to auto to maintain aspect ratio */
+                height: 45px; /* Set the height of all images */
+                position: relative;
+                margin: 0 0px; /* Add margin between images */
+                object-fit: contain; /* Ensure the entire image is visible within the specified dimensions */
+            }
+            
+           
+
+
+
+
+
+        }
+
+
+
             
             
         </style>
@@ -589,13 +717,35 @@
     <!- Add more cards as needed 
    </div>
 -->
+
+<br>
+
+<br>
+
+<br>
+
+<br>
+
+<br>
+
+<div class="spacer">
+    <div class="msg">
+        <h2>Send your files on!!</h3>
+    </div>
+    <div class="soc-med">
+        <a href="https://wa.me/+919491804064" target="_blank">
+            <img class="wat-img" src="https://ehtjgdywsyvlshqpxbum.supabase.co/storage/v1/object/public/images/watsapp_logo-removebg-preview.png?t=2024-03-26T03%3A10%3A02.449Z" alt="WhatsApp">
+        </a>
+        
+    </div>
+</div>
+
 <footer>
     <p>&copy; 2024 PAVAN TEJA INTERNET. All rights reserved.</p>
-    <p>Contact: safacts001@gmail.com</p>
+   
     
   
 </footer>
-
 
 
 <script>
@@ -849,8 +999,15 @@
         }
     };
     
-    
-    
+
+    function redirectToWhatsApp(phoneNumber, productId) {
+        // Define the product card element
+        // Construct the WhatsApp URL with pre-filled message
+        var whatsappURL = 'https://wa.me/' + phoneNumber + '?text=' + encodedMessage;
+            
+        // Open the WhatsApp URL in a new tab
+        window.open(whatsappURL, '_blank');
+    }
 
 </script>
 </body>
