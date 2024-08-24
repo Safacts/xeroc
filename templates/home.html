@@ -876,15 +876,13 @@
         const fileMetadata = document.getElementById('fileMetadata');
         const progressBar = document.getElementById('progressBar').firstElementChild;
 
-        if (userNameInput.value.trim() === '') {
-            alert('Please enter your name before uploading.');
-            return;
-        }
+        // Trim the username to remove any leading or trailing whitespace
+    const trimmedUserName = userNameInput.value.trim();
 
-        if (fileInput.files.length === 0) {
-            alert('Please select a file before uploading.');
-            return;
-        }
+    if (trimmedUserName === '') {
+        alert('Please enter your name before uploading.');
+        return;
+    }
 
         const file = fileInput.files[0];
         const formData = new FormData();
