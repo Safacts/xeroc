@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import homepage, upload_file, success_view, details, list_files_view, delete_file_view, download_file_view, password
+from .views import homepage, upload_file, success_view, details, list_files_view, delete_file_view, download_file_view, password, confirm_upload
 
 urlpatterns = [
     path("", homepage, name="home"),
@@ -10,4 +10,5 @@ urlpatterns = [
     path('delete-file/<str:file_name>/', delete_file_view, name='delete_file'),
     path('download-file/<str:file_name>/', download_file_view, name='download_file_view'),
     path('pass/', password, name='password'),
+     path('confirm_upload/', confirm_upload, name='confirm_upload'),  # Add this line
 ]

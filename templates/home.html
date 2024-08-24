@@ -867,7 +867,24 @@
         }
     }
 
-    
+    document.addEventListener('DOMContentLoaded', function() {
+        const uploadButton = document.getElementById('uploadButton');
+        const fileInput = document.getElementById('fileInput');
+        const fileMetadata = document.getElementById('fileMetadata');
+
+        // Display file metadata when a file is selected
+        fileInput.addEventListener('change', function() {
+            const file = fileInput.files[0];
+            if (file) {
+                fileMetadata.textContent = `File Name: ${file.name}, Size: ${file.size} bytes, Type: ${file.type}`;
+            } else {
+                fileMetadata.textContent = '';
+            }
+        });
+
+        // Upload file when the upload button is clicked
+        uploadButton.addEventListener('click', uploadFile);
+    });
 
     
     async function uploadFile() {
@@ -875,26 +892,26 @@
         const fileInput = document.getElementById('fileInput');
         const fileMetadata = document.getElementById('fileMetadata');
         const progressBar = document.getElementById('progressBar').firstElementChild;
-
+    
         if (userNameInput.value.trim() === '') {
             alert('Please enter your name before uploading.');
             return;
         }
-
+    
         if (fileInput.files.length === 0) {
             alert('Please select a file before uploading.');
             return;
         }
-
+    
         const file = fileInput.files[0];
         const formData = new FormData();
         formData.append('file', file);
         formData.append('user_name', encodeURIComponent(userNameInput.value));
-
+    
         const xhr = new XMLHttpRequest();
         xhr.open('POST', '/upload/', true);
         xhr.setRequestHeader('X-CSRFToken', getCookie('csrftoken'));
-
+    
         xhr.upload.onprogress = function(event) {
             if (event.lengthComputable) {
                 const percentComplete = (event.loaded / event.total) * 100;
@@ -902,77 +919,61 @@
                 progressBar.textContent = Math.round(percentComplete) + '%';
             }
         };
-
+    
         xhr.onloadstart = function() {
             progressBar.style.width = '0%';
+            progressBar.textContent = '0%';
         };
-
-        xhr.onloadend = function() {
-          
-            if (xhr.status === 200) {
-                // Show the "Upload Complete!" message right after the upload finishes
+    
+        xhr.onload = async function() {
+            const response = JSON.parse(xhr.responseText);
+            const fileUrl = response.file_url;  // Get the file_url from the response
+            console.log('File URL:', fileUrl);  // Debug print
+    
+            // Redirect to confirm_upload with the file_url
+            const confirmResponse = await fetch(`/confirm_upload/?file_url=${encodeURIComponent(fileUrl)}`);
+            const confirmData = await confirmResponse.json();
+    
+            if (confirmData.success) {
                 progressBar.style.width = '100%';
                 progressBar.textContent = 'Upload Complete!';
-
-                // Debugging step: Log the response
-                console.log('Upload successful:', xhr.responseText);
-
-            
-            
-                // Start the 5-second reset process after displaying "Upload Complete!"
-                setTimeout(function() {
-                    // Show a 5-second reset countdown
-                    var resetCounter = 3;
-                    var resetInterval = setInterval(function() {
-                        resetCounter--;
-                        if (resetCounter > 0) {
-                            progressBar.textContent = "Resetting in " + resetCounter + "...";
-                        } else {
-                            clearInterval(resetInterval);
-            
-                            // Once the countdown ends, reset the progress bar and file input
-                            progressBar.style.width = '0%';
-                            
-            
-                            // Clear the file input
-                            fileInput.value = ""; // Clear the file input
-                            fileMetadata.textContent = ''; // Clear the file metadata
-                            progressBar.textContent = "";
-                            // Ensure the label updates correctly
-                            var fileLabel = document.querySelector('.file-upload input[type="file"]');
-                            fileLabel.previousElementSibling.textContent = "Choose another file";
-                            // Update the file input label to "Choose another file"
-                            document.querySelector('.file-upload label').textContent = "Choose another file";
-                        }
-                    }, 1000); // 1-second interval for the countdown
-            
-                }, 2000); // Delay before starting the reset countdown (2 seconds)
-            } else {
-                console.error('Upload failed with status:', xhr.status);
-                alert('File upload failed.');
-            }
-            
-        };
-
-        xhr.onload = function() {
-            if (xhr.status === 200) {
                 alert('File uploaded successfully:\n' + fileMetadata.textContent);
-                // Debugging step: Display the URL of the uploaded file
-                const uploadedFileUrl = JSON.parse(xhr.responseText).file_url;
-                console.log('Uploaded file URL:', uploadedFileUrl);
             } else {
-                console.error('Upload failed with status:', xhr.status);
-                alert('File upload failed.');
+                progressBar.style.width = '100%';
+                progressBar.textContent = 'Upload Failed!';
+                alert('File upload failed: ' + (confirmData.error || 'Unknown error'));
             }
+    
+            setTimeout(function() {
+                var resetCounter = 3;
+                var resetInterval = setInterval(function() {
+                    resetCounter--;
+                    if (resetCounter > 0) {
+                        progressBar.textContent = "Resetting in " + resetCounter + "...";
+                    } else {
+                        clearInterval(resetInterval);
+                        progressBar.style.width = '0%';
+                        fileInput.value = ""; 
+                        fileMetadata.textContent = ''; 
+                        progressBar.textContent = "";
+                        var fileLabel = document.querySelector('.file-upload input[type="file"]');
+                        fileLabel.previousElementSibling.textContent = "Choose another file";
+                        document.querySelector('.file-upload label').textContent = "Choose another file";
+                    }
+                }, 1000);
+            }, 2000);
         };
-
+    
         xhr.onerror = function() {
             console.error('An error occurred during the transaction');
+            progressBar.style.width = '100%';
+            progressBar.textContent = 'Upload Failed!';
             alert('File upload failed.');
         };
-
+    
         xhr.send(formData);
     }
+    
 
     
     function getCookie(name) {

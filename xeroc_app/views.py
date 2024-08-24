@@ -7,6 +7,10 @@ from django.http import JsonResponse, HttpResponse, Http404
 from django.views.decorators.http import require_http_methods
 import re
 import urllib.parse
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 # Initialize Supabase client
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
@@ -42,6 +46,10 @@ def upload_file(request):
             original_file_name = file.name
             sanitized_file_name = sanitize_filename(original_file_name)
             file_size = file.size
+
+            if not file_size:  # Check if file_size is available
+                return JsonResponse({'success': False, 'error': 'File size is missing'})
+            
             print(f"Uploading file: {original_file_name}, Size: {file_size} bytes, Uploaded by: {user_name}")
 
             # Create a new file name with the username as part of the path or name
@@ -51,9 +59,9 @@ def upload_file(request):
             try:
                 # Read file content
                 file_content = file.read()
+                content_type = file.content_type
                 print("File read successfully")
 
-                content_type = file.content_type
                 # Upload file to Supabase storage
                 response = supabase.storage.from_('flies').upload(unique_file_name, file_content, {
                     'content-type': content_type
@@ -63,16 +71,19 @@ def upload_file(request):
 
                 if response_data.get('error'):
                     print(f"Error uploading file: {response_data['error']}")
-                    return render(request, 'home.html', {'form': form, 'error': response_data['error']})
+                    return JsonResponse({'success': False, 'error': response_data['error']})
 
                 file_url = f"{SUPABASE_URL}/storage/v1/object/public/flies/{unique_file_name}"
 
                 # Save the file information and user name in the database
-                UploadedFile.objects.create(user_name=user_name, file_name=unique_file_name, file_url=file_url)
-                return redirect('success_view')
+                UploadedFile.objects.create(user_name=user_name, file_name=unique_file_name, file_url=file_url, file_size=file_size)
+                
+                # Return file_url in the response
+                return JsonResponse({'success': True, 'file_url': file_url})
             except Exception as e:
                 print(f"Exception during file upload: {e}")
-                return render(request, 'home.html', {'form': form, 'error': str(e)})
+                return JsonResponse({'success': False, 'error': str(e)})
+        return JsonResponse({'success': False, 'error': 'Invalid request method'})
     else:
         form = UploadFileForm()
     
@@ -98,6 +109,40 @@ def list_files_view(request):
     except Exception as e:
         print(f"Exception during listing flies: {e}")
         return JsonResponse({'error': str(e)}, status=500)
+    
+
+from django.http import JsonResponse
+from .models import UploadedFile
+
+def confirm_upload(request):
+    """
+    Confirm if a file URL exists in the database.
+    
+    Args:
+    request (HttpRequest): The incoming request object.
+    
+    Returns:
+    JsonResponse: A JSON response with success status and error message (if any).
+    """
+
+    file_url = request.GET.get('file_url')
+    print(f"Received file_url: {file_url}")  # Debug print
+
+    if not file_url:
+        return JsonResponse({'success': False, 'error': 'File URL is missing'})
+
+    try:
+        file_record = UploadedFile.objects.get(file_url=file_url)
+        print(f"File record found: {file_record}")  # Debug print
+        return JsonResponse({'success': True})
+    except UploadedFile.DoesNotExist:
+        print("File not found in the database")  # Debug print
+        return JsonResponse({'success': False, 'error': 'File not uploaded to the database'})
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")  # Debug print
+        return JsonResponse({'success': False, 'error': 'An unexpected error occurred'})
+
+
  
 def delete_file_view(request, file_name):
     response = supabase.storage.from_('flies').remove([file_name])

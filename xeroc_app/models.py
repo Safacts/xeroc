@@ -6,8 +6,9 @@ class UploadedFile(models.Model):
     user_name = models.CharField(max_length=255, default='Unknown')
     file_name = models.CharField(max_length=255)
     file_url = models.URLField()
+    file_size = models.PositiveIntegerField(default=0)  # Add default value here
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f"{self.user_name} - {self.file.name}"
     
+    def __str__(self):
+        return f"{self.user_name} - {self.file_name}"  # Use file_name instead of file
