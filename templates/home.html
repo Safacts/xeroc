@@ -884,6 +884,11 @@
         return;
     }
 
+    if (fileInput.files.length === 0) {
+        alert('Please select a file before uploading.');
+        return;
+    }
+
         const file = fileInput.files[0];
         const formData = new FormData();
         formData.append('file', file);
