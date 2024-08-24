@@ -42,7 +42,9 @@ def upload_file(request):
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             file = request.FILES['file']
-            user_name = form.cleaned_data['user_name'].lower()  # Get the user name from the form and make it lowercase
+            user_name = form.cleaned_data['user_name'].strip().lower()  # Trim spaces and make it lowercase
+            user_name = re.sub(r'\s+', '_', user_name)  # Replace spaces with underscores
+            
             original_file_name = file.name
             sanitized_file_name = sanitize_filename(original_file_name)
             file_size = file.size
@@ -166,8 +168,8 @@ def download_file_view(request, file_name):
         print(f"Exception during file download: {e}")
         return JsonResponse({'error': str(e)}, status=500)
     
-
 def search_files_by_user(request):
-    user_name = request.GET.get('user_name')
+    user_name = request.GET.get('user_name', '').strip().lower()
+    user_name = re.sub(r'\s+', '_', user_name)  # Replace spaces with underscores
     files = UploadedFile.objects.filter(user_name__icontains=user_name)
     return render(request, 'files_list.html', {'files': files})

@@ -893,10 +893,13 @@
         const fileMetadata = document.getElementById('fileMetadata');
         const progressBar = document.getElementById('progressBar').firstElementChild;
     
-        if (userNameInput.value.trim() === '') {
+        let userName = userNameInput.value.trim();  // Trim leading/trailing spaces
+        if (userName === '') {
             alert('Please enter your name before uploading.');
             return;
         }
+
+        userName = userName.replace(/\s+/g, '_');  // Replace spaces with underscores
     
         if (fileInput.files.length === 0) {
             alert('Please select a file before uploading.');
@@ -906,7 +909,7 @@
         const file = fileInput.files[0];
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('user_name', encodeURIComponent(userNameInput.value));
+        formData.append('user_name', encodeURIComponent(userName));  // Encode username
     
         const xhr = new XMLHttpRequest();
         xhr.open('POST', '/upload/', true);
