@@ -487,6 +487,43 @@
                 transform: scale(1.05);
             }
 
+            .custom-popup {
+                display: none;
+                position: fixed;
+                z-index: 1000; /* Ensure this is higher than other elements */
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                overflow: auto;
+                background-color: rgba(0, 0, 0, 0.4);
+            }
+            
+            .custom-popup-content {
+                background-color: #fff;
+                margin: 15% auto;
+                padding: 20px;
+                border: 1px solid #888;
+                width: 80%;
+                max-width: 400px;
+                border-radius: 10px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                text-align: center;
+            }
+            
+            .close-btn {
+                color: #aaa;
+                float: right;
+                font-size: 28px;
+                font-weight: bold;
+            }
+            
+            .close-btn:hover,
+            .close-btn:focus {
+                color: black;
+                text-decoration: none;
+                cursor: pointer;
+            }
             
             
             
@@ -660,6 +697,13 @@
    <h1>PAVAN TEJA INTERNET</h1>
 </header>
 
+<div id="custom-popup" class="custom-popup">
+    <div class="custom-popup-content">
+        <span class="close-btn" onclick="closeCustomPopup()">&times;</span>
+        <p id="popup-message"></p>
+    </div>
+</div>
+
 <div class="start" id="start-button">
     <button onclick="location.href='{% url 'password' %}'">Get started</button>
 </div>
@@ -811,10 +855,10 @@
                 document.getElementById('locationInput').value = city;
                 filterCaterersByCity(city);
             }, error => {
-                alert('Error getting location: ' + error.message);
+                showCustomPopup('Error getting location: ' + error.message);
             });
         } else {
-            alert('Geolocation is not supported by this browser.');
+            showCustomPopup('Geolocation is not supported by this browser.');
         }
     }
         
@@ -895,14 +939,14 @@
     
         let userName = userNameInput.value.trim();  // Trim leading/trailing spaces
         if (userName === '') {
-            alert('Please enter your name before uploading.');
+            showCustomPopup('Please enter your name before uploading.');
             return;
         }
 
         userName = userName.replace(/\s+/g, '_');  // Replace spaces with underscores
     
         if (fileInput.files.length === 0) {
-            alert('Please select a file before uploading.');
+            showCustomPopup('Please select a file before uploading.');
             return;
         }
     
@@ -940,11 +984,11 @@
             if (confirmData.success) {
                 progressBar.style.width = '100%';
                 progressBar.textContent = 'Upload Complete!';
-                alert('File uploaded successfully:\n' + fileMetadata.textContent);
+                showCustomPopup('File uploaded successfully:\n' + fileMetadata.textContent);
             } else {
                 progressBar.style.width = '100%';
                 progressBar.textContent = 'Upload Failed!';
-                alert('File upload failed: ' + (confirmData.error || 'Unknown error'));
+                showCustomPopup('File upload failed: ' + (confirmData.error || 'Unknown error'));
             }
     
             setTimeout(function() {
@@ -971,7 +1015,7 @@
             console.error('An error occurred during the transaction');
             progressBar.style.width = '100%';
             progressBar.textContent = 'Upload Failed!';
-            alert('File upload failed.');
+            showCustomPopup('File upload failed.');
         };
     
         xhr.send(formData);
@@ -1002,6 +1046,15 @@
             progressBar.textContent = Math.round(percentComplete) + '%';
         }
     };
+    
+    function showCustomPopup(message) {
+        document.getElementById('popup-message').innerText = message;
+        document.getElementById('custom-popup').style.display = 'block';
+    }
+    
+    function closeCustomPopup() {
+        document.getElementById('custom-popup').style.display = 'none';
+    }
     
 
     function redirectToWhatsApp(phoneNumber, productId) {
