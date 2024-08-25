@@ -795,6 +795,7 @@
 <script>
     const apiKey = 'ba9de512128c422abe90467115b6573a';
 
+
     document.getElementById('searchInput').addEventListener('input', function() {
         let filter = this.value.toLowerCase();
         let cards = document.getElementsByClassName('card');
@@ -931,6 +932,7 @@
     });
 
     
+
     async function uploadFile() {
         const userNameInput = document.getElementById('userNameInput');
         const fileInput = document.getElementById('fileInput');
@@ -950,7 +952,10 @@
             return;
         }
     
+        
         const file = fileInput.files[0];
+
+
         const formData = new FormData();
         formData.append('file', file);
         formData.append('user_name', encodeURIComponent(userName));  // Encode username
@@ -962,6 +967,7 @@
         xhr.upload.onprogress = function(event) {
             if (event.lengthComputable) {
                 const percentComplete = (event.loaded / event.total) * 100;
+                console.log(`Progress: ${percentComplete}%`); // Debugging statement
                 progressBar.style.width = percentComplete + '%';
                 progressBar.textContent = Math.round(percentComplete) + '%';
             }
@@ -994,9 +1000,10 @@
             setTimeout(function() {
                 var resetCounter = 3;
                 var resetInterval = setInterval(function() {
-                    resetCounter--;
+                    
                     if (resetCounter > 0) {
                         progressBar.textContent = "Resetting in " + resetCounter + "...";
+                        resetCounter--;
                     } else {
                         clearInterval(resetInterval);
                         progressBar.style.width = '0%';
@@ -1023,34 +1030,19 @@
     
 
     
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
-    xhr.upload.onprogress = function(event) {
-        if (event.lengthComputable) {
-            const percentComplete = (event.loaded / event.total) * 100;
-            console.log(`Progress: ${percentComplete}%`); // Debugging statement
-            progressBar.style.width = percentComplete + '%';
-            progressBar.textContent = Math.round(percentComplete) + '%';
-        }
-    };
     
-    function showCustomPopup(message) {
-        document.getElementById('popup-message').innerText = message;
+
+    
+
+    function showCustomPopup(message, whatsappLink = null) {
+        const popupMessageElement = document.getElementById('popup-message');
+        popupMessageElement.innerHTML = message; // Use innerHTML to render HTML content
         document.getElementById('custom-popup').style.display = 'block';
+        document.body.classList.add('blur-background');
+    
+        
     }
+    
     
     function closeCustomPopup() {
         document.getElementById('custom-popup').style.display = 'none';
