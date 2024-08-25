@@ -795,6 +795,28 @@
 <script>
     const apiKey = 'ba9de512128c422abe90467115b6573a';
 
+    
+
+    // Define the file size limit (in bytes)
+    const MAX_FILE_SIZE_MB = 4.6;
+    const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+    // Helper function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
 
     document.getElementById('searchInput').addEventListener('input', function() {
         let filter = this.value.toLowerCase();
@@ -819,20 +841,6 @@
     
 
     
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
 
     function filterCaterersByCity(city) {
         let cards = document.getElementsByClassName('card');
@@ -931,6 +939,28 @@
         uploadButton.addEventListener('click', uploadFile);
     });
 
+
+
+    function showCustomPopup(message, whatsappLink = null) {
+        return new Promise((resolve) => {
+            const popupMessageElement = document.getElementById('popup-message');
+            popupMessageElement.innerHTML = message; // Use innerHTML to render HTML content
+            document.getElementById('custom-popup').style.display = 'block';
+            document.body.classList.add('blur-background');
+    
+            if (whatsappLink) {
+                const whatsappLinkElement = document.getElementById('whatsapp-link');
+                whatsappLinkElement.href = whatsappLink;
+                whatsappLinkElement.style.display = 'block';
+            } else {
+                document.getElementById('whatsapp-link').style.display = 'none';
+            }
+    
+            // Resolve the promise after the popup is shown
+            resolve();
+        });
+    }
+
     
 
     async function uploadFile() {
@@ -954,6 +984,15 @@
     
         
         const file = fileInput.files[0];
+        // Check file size
+        if (file.size > MAX_FILE_SIZE_BYTES) {
+            // Display popup with WhatsApp link
+            const message = `File ${file.name} exceeds the 4.6 MB limit. Please send it on WhatsApp.`;
+            const phoneNumber = '+919491804064'; // Replace with your WhatsApp number
+            const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+            await showCustomPopup(`File exceeded limit. Try sending on <a href="${whatsappURL}" target="_blank">WhatsApp</a>`);
+            return;
+        }
 
 
         const formData = new FormData();
@@ -1015,7 +1054,7 @@
                         document.querySelector('.file-upload label').textContent = "Choose another file";
                     }
                 }, 1000);
-            }, 2000);
+            }, 3000);
         };
     
         xhr.onerror = function() {
@@ -1034,14 +1073,6 @@
 
     
 
-    function showCustomPopup(message, whatsappLink = null) {
-        const popupMessageElement = document.getElementById('popup-message');
-        popupMessageElement.innerHTML = message; // Use innerHTML to render HTML content
-        document.getElementById('custom-popup').style.display = 'block';
-        document.body.classList.add('blur-background');
-    
-        
-    }
     
     
     function closeCustomPopup() {
