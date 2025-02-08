@@ -283,7 +283,6 @@
 
 
         //============================================================//
-
         // Function to load files from the server
         async function loadFiles() {
             try {
@@ -337,6 +336,11 @@
                 alert('Failed to load files');
             }
         }
+
+        // Initial fetch and then set the interval for updates
+        loadFiles();  // Fetch files initially when the page loads
+
+        setInterval(loadFiles, 10000);  // Refresh every 10 seconds
 
 
 
