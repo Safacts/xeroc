@@ -230,6 +230,60 @@
             }
         }
 
+        // // // Function to load files from the server
+        // async function loadFiles() {
+        //     try {
+        //         const response = await fetch('/files/');
+        //         if (!response.ok) throw new Error('Network response was not ok');
+
+        //         const files = await response.json();
+        //         const fileList = document.getElementById('fileList');
+        //         fileList.innerHTML = '';
+
+        //         if (files.length === 0) {
+        //             fileList.innerHTML = '<li>No files found.</li>';
+        //             return;
+        //         }
+
+        //         files.forEach(file => {
+        //             const li = document.createElement('li');
+        //             const link = document.createElement('a');
+        //             link.href = file.url;
+        //             link.target = '_blank';
+        //             link.textContent = `${file.name} `; // Display username
+
+        //             // Add buttons for each file
+        //             const printButton = document.createElement('button');
+        //             printButton.textContent = 'Print';
+        //             printButton.className = 'styled-button';
+        //             printButton.onclick = () => handleFileAction(file.url, file.name, 'print');
+
+
+        //             const downloadButton = document.createElement('button');
+        //             downloadButton.textContent = 'Download';
+        //             downloadButton.className = 'delete'; // Previously delete, now for download
+        //             downloadButton.onclick = () => handleFileAction(file.url, file.name, 'download');
+
+        //             const previewButton = document.createElement('button');
+        //             previewButton.textContent = 'Preview';
+        //             previewButton.className = 'modify'; // Previously modify, now for preview
+        //             previewButton.onclick = () => handleFileAction(file.url, file.name, 'preview');
+
+        //             li.appendChild(link);
+        //             li.appendChild(printButton);
+        //             li.appendChild(downloadButton);
+        //             li.appendChild(previewButton);
+        //             fileList.appendChild(li);
+        //         });
+        //     } catch (error) {
+        //         console.error('Error loading files:', error);
+        //         alert('Failed to load files');
+        //     }
+        // }
+
+
+        //============================================================//
+
         // Function to load files from the server
         async function loadFiles() {
             try {
@@ -238,26 +292,29 @@
 
                 const files = await response.json();
                 const fileList = document.getElementById('fileList');
-                fileList.innerHTML = '';
+                fileList.innerHTML = ''; // Clear previous list of files
 
                 if (files.length === 0) {
                     fileList.innerHTML = '<li>No files found.</li>';
                     return;
                 }
 
+                // Sort files based on the 'uploaded_at' timestamp (in milliseconds)
+                files.sort((a, b) => b.uploaded_at - a.uploaded_at); // Descending order
+
+                // Loop through the sorted files and create list items
                 files.forEach(file => {
                     const li = document.createElement('li');
                     const link = document.createElement('a');
                     link.href = file.url;
                     link.target = '_blank';
-                    link.textContent = `${file.name} `; // Display username
+                    link.textContent = file.name;  // Display the file name
 
                     // Add buttons for each file
                     const printButton = document.createElement('button');
                     printButton.textContent = 'Print';
                     printButton.className = 'styled-button';
                     printButton.onclick = () => handleFileAction(file.url, file.name, 'print');
-
 
                     const downloadButton = document.createElement('button');
                     downloadButton.textContent = 'Download';
@@ -280,6 +337,11 @@
                 alert('Failed to load files');
             }
         }
+
+
+
+        //============================================================// 
+
 
         // Unified function to handle file actions (print, download, preview)
         function handleFileAction(fileUrl, fileName, action) {

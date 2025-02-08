@@ -9,6 +9,10 @@ import re
 import urllib.parse
 import logging
 
+from django.core.serializers import serialize
+
+from .models import UploadedFile
+
 logger = logging.getLogger(__name__)
 
 
@@ -26,7 +30,8 @@ def success_view(request):
 
 
 def details(request):
-    return render(request, 'files.html')
+    files = UploadedFile.objects.all().order_by('-uploaded_at')  # Sorted by uploaded_at in descending order
+    return render(request, 'files.html', {'files': files})
 
 def password(request):
     return render(request, 'password.html')
@@ -173,3 +178,18 @@ def search_files_by_user(request):
     user_name = re.sub(r'\s+', '_', user_name)  # Replace spaces with underscores
     files = UploadedFile.objects.filter(user_name__icontains=user_name)
     return render(request, 'files_list.html', {'files': files})
+
+
+
+def list_files_view(request):
+    # Retrieve and order files by uploaded_at
+    files = UploadedFile.objects.all().order_by('-uploaded_at')
+
+    # Prepare the data for the frontend
+    files_data = [{
+        'name': file.file_name,
+        'url': file.file_url,
+        'uploaded_at': int(file.uploaded_at.timestamp() * 1000),  # Convert to milliseconds
+    } for file in files]
+
+    return JsonResponse(files_data, safe=False)
