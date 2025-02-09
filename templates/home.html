@@ -784,11 +784,14 @@
     </div>
 </div>
 
-<footer>
-    <p>&copy; 2024 PAVAN TEJA INTERNET. All rights reserved.</p>
-   
-    
-  
+<footer class="footer">
+    &copy; 2024 YR Corporation. All rights reserved.
+    <p>
+    {% if view_count %}
+        Page Views: {{ view_count }}
+    {% else %}
+        Welcome! Be the first to view this page.
+    {% endif %}
 </footer>
 
 

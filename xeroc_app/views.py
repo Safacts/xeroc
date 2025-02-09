@@ -1,11 +1,12 @@
 from django.shortcuts import render, redirect
 from supabase import create_client, Client
 from .forms import UploadFileForm
-from .models import UploadedFile
+from .models import UploadedFile, PageView
 import os
 from django.http import JsonResponse, HttpResponse, Http404
 from django.views.decorators.http import require_http_methods
 import re
+from django.conf import settings
 import urllib.parse
 import logging
 
@@ -23,7 +24,16 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # Create your views here.
 def homepage(request):
-    return render(request, 'home.html')
+    if settings.COUNT_PAGE_VIEWS:
+        page_view, created = PageView.objects.get_or_create(pk=1)
+        page_view.count += 1
+        page_view.save()
+        view_count = page_view.count
+    else:
+        view_count = "Development mode: View count not tracked."
+
+    context = {'view_count': view_count}
+    return render(request, 'home.html', context)
 
 def success_view(request):
     return render(request, 'success.html')

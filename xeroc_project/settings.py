@@ -25,7 +25,9 @@ env = environ.Env()
 # Read .env file
 env.read_env()
 
-
+# pagecount related code
+DEBUG = env.bool('DEBUG', default=False)
+COUNT_PAGE_VIEWS = env.bool('COUNT_PAGE_VIEWS', default=False)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/

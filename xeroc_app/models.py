@@ -16,6 +16,14 @@ from django.db import models
 from django.db import models
 from django.utils import timezone
 import pytz
+
+class PageView(models.Model):
+    count = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return str(self.count)
+    
+    
 class UploadedFile(models.Model):
     user_name = models.CharField(max_length=255, default='Unknown')
     file_name = models.CharField(max_length=255)
@@ -33,3 +41,4 @@ class UploadedFile(models.Model):
         ist = pytz.timezone('Asia/Kolkata')
         uploaded_at_ist = self.uploaded_at.astimezone(ist)
         return f"{self.user_name} - {self.file_name} - {uploaded_at_ist.strftime('%Y-%m-%d %H:%M:%S %Z')}"
+
