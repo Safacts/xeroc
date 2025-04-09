@@ -11,7 +11,7 @@ from django.db import models
 
     
 #     def __str__(self):
-#         return f"{self.user_name} - {self.file_name}"  # Use file_name instead of file
+#         return f"{self.user_name} - {self.file_name}"  # Use file_name instead of files
 
 from django.db import models
 from django.utils import timezone
