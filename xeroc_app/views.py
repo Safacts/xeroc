@@ -107,7 +107,7 @@ def upload_file(request):
     return render(request, 'home.html', {'form': form})
 
 def list_files_view(request):
-    user_name = request.GET.get('user_name', '').lower()  # Get user name from query params
+    user_name = request.GET.get('user_name', '').lower()  # Get user name from query params.
     try:
         response = supabase.storage.from_('flies').list()
 
