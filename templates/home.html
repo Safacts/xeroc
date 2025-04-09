@@ -709,6 +709,23 @@
 </div>
 
 
+<div id="overlay" onclick="triggerUpload()" style="
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  color: #fff;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  font-size: 20px;
+  text-align: center;
+  cursor: pointer;
+">
+  Tap Anywhere to Start Upload
+</div>
+
+
 
 <div class="card">
     <div class="card-body">
@@ -797,30 +814,28 @@
 
 <script>
 
-    // Function to generate random name
-    function generateRandomName(length = 8) {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        let name = '';
-        for (let i = 0; i < length; i++) {
-            name += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return name;
+    const names = [
+    "Aryaman", "Vishvakarma", "Marichi", "Sudarshana", 
+    "Krittika", "Agastya", "Lopamudra", "Mandodari", 
+    "Gargi", "Yajnavalkya", "Satyavati", "Rishyashringa"
+    ];
+
+    window.onload = function() {
+    if (window.innerWidth <= 768) {
+        document.getElementById("overlay").style.display = 'flex';
+    }
     }
 
-    window.addEventListener('load', function () {
-        // Check if device is mobile or screen width <= 768px
-        if (window.innerWidth <= 768) {
+    function triggerUpload() {
+    const randomName = names[Math.floor(Math.random() * names.length)];
+    document.getElementById("userNameInput").value = randomName;
 
-            // Auto-fill name with random value
-            const nameInput = document.getElementById('userNameInput');
-            nameInput.value = generateRandomName();
+    document.getElementById("fileInput").click();
 
-            // Auto trigger file picker after slight delay
-            setTimeout(() => {
-                document.getElementById('fileInput').click();
-            }, 500); // delay for better UX
-        }
-    });
+    document.getElementById("overlay").style.display = 'none';
+    }
+
+
 
     const apiKey = 'ba9de512128c422abe90467115b6573a';
 
