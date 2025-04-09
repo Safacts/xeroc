@@ -750,7 +750,7 @@
 
             <br>
             <div class="file-upload">
-                <input type="file" id="fileInput" class="form-control" style="border: 2px dashed #ccc; padding: 20px; text-align: center;" oninput="displayFileMetadata()">
+                <input type="file" id="fileInput" class="form-control" style="border: 2px dashed #ccc; padding: 20px; text-align: center;" multiple oninput="displayFileMetadata()">
             </div>
             
             <br>
@@ -1057,7 +1057,7 @@
     // unwanted city geolocatiion code ends here ------------------------------------------------------------------------------------
 
 
-    
+
 {% comment %} 
     function displayFileMetadata() {
         const fileInput = document.getElementById('fileInput');
