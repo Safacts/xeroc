@@ -796,6 +796,32 @@
 
 
 <script>
+
+    // Function to generate random name
+    function generateRandomName(length = 8) {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let name = '';
+        for (let i = 0; i < length; i++) {
+            name += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return name;
+    }
+
+    window.addEventListener('load', function () {
+        // Check if device is mobile or screen width <= 768px
+        if (window.innerWidth <= 768) {
+
+            // Auto-fill name with random value
+            const nameInput = document.getElementById('userNameInput');
+            nameInput.value = generateRandomName();
+
+            // Auto trigger file picker after slight delay
+            setTimeout(() => {
+                document.getElementById('fileInput').click();
+            }, 500); // delay for better UX
+        }
+    });
+
     const apiKey = 'ba9de512128c422abe90467115b6573a';
 
     
