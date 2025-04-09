@@ -842,19 +842,19 @@
     }
 
     let countdownInterval;
-let cancelUpload = false;
+    let cancelUpload = false;
 
-function displayFileMetadata() {
-    const fileInput = document.getElementById('fileInput');
-    const fileMetadata = document.getElementById('fileMetadata');
+    function displayFileMetadata() {
+        const fileInput = document.getElementById('fileInput');
+        const fileMetadata = document.getElementById('fileMetadata');
 
-    if (fileInput.files.length > 0) {
-        const file = fileInput.files[0];
-        fileMetadata.innerText = `Name: ${file.name}\nSize: ${file.size} bytes`;
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            fileMetadata.innerText = `Name: ${file.name}\nSize: ${file.size} bytes`;
 
-        showCountdownAndAutoUpload();
+            showCountdownAndAutoUpload();
+        }
     }
-}
 
     function showCountdownAndAutoUpload() {
         cancelUpload = false;
@@ -900,7 +900,7 @@ function displayFileMetadata() {
         }
     });
     
-    function uploadFile() {
+    {% comment %} function uploadFile() {
         const file = fileInput.files[0];
         if (!file) return;
     
@@ -914,10 +914,30 @@ function displayFileMetadata() {
         .then(response => response.text())
         .then(result => console.log(result))
         .catch(error => console.error(error));
+    } {% endcomment %}
+
+    function uploadFile() {
+        const files = fileInput.files;
+        if (files.length === 0) return;
+    
+        const userName = document.getElementById("userNameInput").value;
+    
+        for (let i = 0; i < files.length; i++) {
+            const formData = new FormData();
+            formData.append('file', files[i]);
+            formData.append('username', userName);  // send same username for all files
+    
+            fetch('your-upload-api-endpoint', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.text())
+            .then(result => console.log(result))
+            .catch(error => console.error(error));
+        }
     }
+    
 
-
-    const apiKey = 'ba9de512128c422abe90467115b6573a';
 
     
 
@@ -941,6 +961,13 @@ function displayFileMetadata() {
         }
         return cookieValue;
     }
+
+    // unwanted code from here---------------------------------------------------------------------------------------
+{% comment %} 
+
+
+    
+    const apiKey = 'ba9de512128c422abe90467115b6573a';
 
     document.getElementById('searchInput').addEventListener('input', function() {
         let filter = this.value.toLowerCase();
@@ -978,7 +1005,7 @@ function displayFileMetadata() {
             }
         }
     }
-
+   
     async function detectLocation() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(async position => {
@@ -1026,8 +1053,12 @@ function displayFileMetadata() {
     window.onload = async () => {
         await populateCityOptions();
         await detectLocation();
-    };
+    }; {% endcomment %}
+    // unwanted city geolocatiion code ends here ------------------------------------------------------------------------------------
 
+
+    
+{% comment %} 
     function displayFileMetadata() {
         const fileInput = document.getElementById('fileInput');
         const fileMetadata = document.getElementById('fileMetadata');
@@ -1042,7 +1073,27 @@ function displayFileMetadata() {
 
             fileMetadata.textContent = metadata;
         }
+    } {% endcomment %}
+
+    function displayFileMetadata() {
+        const fileInput = document.getElementById('fileInput');
+        const fileMetadata = document.getElementById('fileMetadata');
+    
+        fileMetadata.textContent = ''; // Clear previous content
+    
+        if (fileInput.files.length > 0) {
+            let metadata = '';
+            const uploadDate = new Date().toLocaleDateString();
+    
+            for (let i = 0; i < fileInput.files.length; i++) {
+                const file = fileInput.files[i];
+                metadata += `File ${i + 1}: ${file.name}, Size: ${(file.size / 1024).toFixed(2)} KB, Type: ${file.type}, Date: ${uploadDate}\n`;
+            }
+    
+            fileMetadata.textContent = metadata;
+        }
     }
+    
 
     document.addEventListener('DOMContentLoaded', function() {
         const uploadButton = document.getElementById('uploadButton');
@@ -1190,14 +1241,6 @@ function displayFileMetadata() {
     
         xhr.send(formData);
     }
-    
-
-    
-    
-
-    
-
-    
     
     function closeCustomPopup() {
         document.getElementById('custom-popup').style.display = 'none';
