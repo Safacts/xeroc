@@ -204,34 +204,16 @@ def list_files_view(request):
 
     return JsonResponse(files_data, safe=False)
 
-
 import json
 import requests
 import os
+import sys
 import traceback
-import logging
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
-# Force Django to use the standard logger so Vercel catches it
-logger = logging.getLogger(__name__)
-
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 N8N_WEBHOOK_URL = os.environ.get("N8N_WEBHOOK_URL")
-
-ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png']
-PRICE_BW = 3
-PRICE_COLOR = 10
-
-def send_telegram_request(method, payload):
-    if not TELEGRAM_BOT_TOKEN:
-        logger.error("CRITICAL: TELEGRAM_BOT_TOKEN is missing from Vercel Environment Variables!")
-        return None
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/{method}"
-    response = requests.post(url, json=payload)
-    if not response.ok:
-        logger.error(f"Telegram API Error ({method}): {response.text}")
-    return response
 
 @csrf_exempt
 def telegram_webhook(request):
@@ -239,6 +221,12 @@ def telegram_webhook(request):
         try:
             update = json.loads(request.body.decode('utf-8'))
             
+            # --- DEBUG: Print EVERYTHING Telegram sends us directly to Vercel ---
+            print("\n" + "="*50, flush=True)
+            print("INCOMING WEBHOOK TRIGGERED!", flush=True)
+            print(json.dumps(update), flush=True)
+            print("="*50 + "\n", flush=True)
+
             # ==========================================
             # SCENARIO 1: BUTTON CLICK
             # ==========================================
@@ -249,134 +237,66 @@ def telegram_webhook(request):
                 message_id = query.get('message', {}).get('message_id')
                 data = query.get('data', '')
                 
-                # Instantly stop the spinning loading icon!
-                send_telegram_request("answerCallbackQuery", {"callback_query_id": callback_id})
-                
-                # If they click a disabled button (like trying to go below 1 copy), do nothing.
-                if data == "ignore":
-                    return JsonResponse({"status": "ok"})
-                    
-                # Safely extract text without crashing
-                text = query.get('message', {}).get('text', '')
-                file_name = "Unknown_File"
-                if "📄 File:" in text:
-                    try:
-                        file_name = text.split("📄 File:")[1].split('\n')[0].strip()
-                    except:
-                        pass
+                print(f"🔘 BUTTON CLICKED: {data}", flush=True)
 
-                logger.info(f"🔘 Button Clicked: {data} | File: {file_name}")
+                # 1. Stop the spinning loading icon!
+                ack_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/answerCallbackQuery"
+                requests.post(ack_url, json={"callback_query_id": callback_id})
+                print("✅ Stopped Telegram loading spinner.", flush=True)
 
-                # --- CHOOSE COLOR ---
-                if data.startswith("set_"):
-                    mode = data.split("_")[1] 
-                    copies = 1 
-                    price_per_page = PRICE_BW if mode == 'bw' else PRICE_COLOR
-                    mode_name = "Black & White" if mode == 'bw' else "Color"
-                    total_price = price_per_page * copies
-                    
-                    keyboard = {"inline_keyboard": [
-                        [{"text": "➖", "callback_data": f"ignore"}, {"text": f"{copies} Copies", "callback_data": "ignore"}, {"text": "➕", "callback_data": f"adj_{mode}_{copies + 1}"}],
-                        [{"text": "🔙 Back", "callback_data": "back_to_start"}, {"text": f"🖨️ Print (₹{total_price})", "callback_data": f"prt_{mode}_{copies}"}]
-                    ]}
-                    send_telegram_request("editMessageText", {
-                        "chat_id": chat_id, "message_id": message_id,
-                        "text": f"📄 File: {file_name}\n🎨 Mode: {mode_name} (₹{price_per_page}/page)\n\nUse the dial to set copies:", "reply_markup": keyboard
+                # 2. Try to change the message to the Dial
+                if data == "set_bw":
+                    print("🎨 Changing menu to Black & White Dial...", flush=True)
+                    keyboard = {
+                        "inline_keyboard": [
+                            [
+                                {"text": "➖", "callback_data": "ignore"}, 
+                                {"text": "1 Copies", "callback_data": "ignore"}, 
+                                {"text": "➕", "callback_data": "adj_bw_2"}
+                            ],
+                            [
+                                {"text": "🔙 Back", "callback_data": "back_to_start"}, 
+                                {"text": "🖨️ Print (₹3)", "callback_data": "prt_bw_1"}
+                            ]
+                        ]
+                    }
+                    edit_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/editMessageText"
+                    edit_resp = requests.post(edit_url, json={
+                        "chat_id": chat_id,
+                        "message_id": message_id,
+                        "text": "📄 File loaded.\n🎨 Mode: Black & White\n\nUse the dial to set copies:",
+                        "reply_markup": keyboard
                     })
-
-                # --- ADJUST COPIES ---
-                elif data.startswith("adj_"):
-                    parts = data.split("_")
-                    mode = parts[1]
-                    copies = int(parts[2])
-                    price_per_page = PRICE_BW if mode == 'bw' else PRICE_COLOR
-                    mode_name = "Black & White" if mode == 'bw' else "Color"
-                    total_price = price_per_page * copies
-                    
-                    minus_btn = f"adj_{mode}_{copies - 1}" if copies > 1 else "ignore"
-                    
-                    keyboard = {"inline_keyboard": [
-                        [{"text": "➖", "callback_data": minus_btn}, {"text": f"{copies} Copies", "callback_data": "ignore"}, {"text": "➕", "callback_data": f"adj_{mode}_{copies + 1}"}],
-                        [{"text": "🔙 Back", "callback_data": "back_to_start"}, {"text": f"🖨️ Print (₹{total_price})", "callback_data": f"prt_{mode}_{copies}"}]
-                    ]}
-                    send_telegram_request("editMessageText", {
-                        "chat_id": chat_id, "message_id": message_id,
-                        "text": f"📄 File: {file_name}\n🎨 Mode: {mode_name} (₹{price_per_page}/page)\n\nUse the dial to set copies:", "reply_markup": keyboard
-                    })
-
-                # --- BACK TO START ---
-                elif data == "back_to_start":
-                    keyboard = {"inline_keyboard": [[{"text": "🔲 Black & White (₹3/page)", "callback_data": "set_bw"}], [{"text": "🎨 Color Format (₹10/page)", "callback_data": "set_co"}]]}
-                    send_telegram_request("editMessageText", {
-                        "chat_id": chat_id, "message_id": message_id,
-                        "text": f"📄 File: {file_name}\n\nStep 1: Choose color format.", "reply_markup": keyboard
-                    })
-
-                # --- SEND TO PRINTER ---
-                elif data.startswith("prt_"):
-                    parts = data.split("_")
-                    mode = "Color" if parts[1] == 'co' else "B&W"
-                    copies = int(parts[2])
-                    total_price = (PRICE_COLOR if mode == "Color" else PRICE_BW) * copies
-                    
-                    # Send to n8n
-                    if N8N_WEBHOOK_URL:
-                        requests.post(N8N_WEBHOOK_URL, json={
-                            "file_name": file_name, "color": mode, "copies": copies, "total_price": total_price
-                        })
-                    
-                    # Show Final Receipt
-                    receipt_text = f"✅ Sent to printer!\n\n📄 File: {file_name}\n🎨 Mode: {mode}\n🖨️ Copies: {copies}\n💰 Total: ₹{total_price}\n\nPlease collect at the counter."
-                    send_telegram_request("editMessageText", {"chat_id": chat_id, "message_id": message_id, "text": receipt_text})
-                
-                else:
-                    # Catch old, expired buttons!
-                    send_telegram_request("sendMessage", {"chat_id": chat_id, "text": "⚠️ This button has expired. Please upload the file again."})
+                    print(f"🔄 Edit Message Response: {edit_resp.status_code} - {edit_resp.text}", flush=True)
 
                 return JsonResponse({"status": "ok"})
 
             # ==========================================
             # SCENARIO 2: FILE UPLOAD
             # ==========================================
-            if 'message' in update:
+            if 'message' in update and ('document' in update['message'] or 'photo' in update['message']):
+                print("📥 FILE RECEIVED! Sending Menu...", flush=True)
                 chat_id = update['message']['chat']['id']
-                file_name = None
-                is_valid = False
-
-                if 'document' in update['message']:
-                    file_name = update['message']['document'].get('file_name', 'unknown_file')
-                    ext = file_name.split('.')[-1].lower() if '.' in file_name else ''
-                    if ext in ALLOWED_EXTENSIONS: is_valid = True
-                elif 'photo' in update['message']:
-                    file_name = "uploaded_image.jpg"
-                    is_valid = True
-
-                if is_valid:
-                    keyboard = {"inline_keyboard": [[{"text": "🔲 Black & White (₹3/page)", "callback_data": "set_bw"}], [{"text": "🎨 Color Format (₹10/page)", "callback_data": "set_co"}]]}
-                    send_telegram_request("sendMessage", {
-                        "chat_id": chat_id, "text": f"📄 File: {file_name}\n\nStep 1: Choose color format.", "reply_markup": keyboard
-                    })
-                elif 'document' in update['message'] or 'photo' in update['message']:
-                    send_telegram_request("sendMessage", {"chat_id": chat_id, "text": "❌ Invalid format. Upload PDF, Word, or Image."})
+                
+                keyboard = {
+                    "inline_keyboard": [
+                        [{"text": "🔲 Black & White (₹3/page)", "callback_data": "set_bw"}],
+                        [{"text": "🎨 Color Format (₹10/page)", "callback_data": "set_co"}]
+                    ]
+                }
+                url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+                requests.post(url, json={
+                    "chat_id": chat_id, 
+                    "text": "Step 1: Choose color format.", 
+                    "reply_markup": keyboard
+                })
+                return JsonResponse({"status": "ok"})
 
             return JsonResponse({"status": "ok"})
             
         except Exception as e:
-            # 🚨 THE TELEGRAM DEBUGGER 🚨
-            error_msg = str(e)
-            logger.error(f"CRITICAL CRASH:\n{traceback.format_exc()}")
-            
-            # Try to instantly text the error to your phone!
-            try:
-                chat_id = None
-                if 'callback_query' in update: chat_id = update['callback_query']['message']['chat']['id']
-                elif 'message' in update: chat_id = update['message']['chat']['id']
-                if chat_id:
-                    send_telegram_request("sendMessage", {"chat_id": chat_id, "text": f"🤖 Developer Error Caught:\n\n{error_msg}"})
-            except:
-                pass
-            
-            # Returning a 500 status forces Vercel to mark the log in RED
-            return JsonResponse({"status": "error", "message": error_msg}, status=500)
+            print(f"❌ CRITICAL PYTHON CRASH: {e}", flush=True)
+            print(traceback.format_exc(), flush=True)
+            return JsonResponse({"status": "error"}, status=500)
             
     return JsonResponse({"status": "invalid request"}, status=400)
