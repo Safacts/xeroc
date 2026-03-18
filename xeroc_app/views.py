@@ -513,3 +513,104 @@ def telegram_webhook(request):
             return JsonResponse({"status": "error"}, status=500)
             
     return JsonResponse({"status": "invalid request"}, status=400)
+
+
+
+def send_whatsapp_message(to, message):
+    account_sid = os.environ.get("TWILIO_ACCOUNT_SID")
+    auth_token = os.environ.get("TWILIO_AUTH_TOKEN")
+
+    url = f"https://api.twilio.com/2010-04-01/Accounts/{account_sid}/Messages.json"
+
+    payload = {
+        "From": "whatsapp:+14155238886",  # Twilio sandbox number
+        "To": to,
+        "Body": message
+    }
+
+    response = requests.post(url, data=payload, auth=(account_sid, auth_token))
+    print("📤 Twilio Response:", response.status_code, response.text, flush=True)
+
+
+
+
+@csrf_exempt
+def whatsapp_webhook(request):
+    if request.method == "POST":
+        try:
+            data = request.POST
+
+            print("\n===== WHATSAPP WEBHOOK HIT =====", flush=True)
+            print(data, flush=True)
+
+            from_number = data.get("From")  # user number
+            message_body = data.get("Body", "").strip()
+            media_url = data.get("MediaUrl0")
+            media_type = data.get("MediaContentType0")
+
+            print(f"From: {from_number}", flush=True)
+            print(f"Message: {message_body}", flush=True)
+            print(f"Media: {media_url}", flush=True)
+
+            # ==========================================
+            # CASE 1: FILE RECEIVED
+            # ==========================================
+            if media_url:
+                file_name = media_url.split("/")[-1]
+
+                reply = (
+                    f"📄 File received!\n\n"
+                    f"Choose print type:\n"
+                    f"1️⃣ Black & White (₹3/page)\n"
+                    f"2️⃣ Color (₹10/page)\n\n"
+                    f"Reply with 1 or 2"
+                )
+
+                send_whatsapp_message(from_number, reply)
+
+                return HttpResponse("OK")
+
+            # ==========================================
+            # CASE 2: USER REPLY (1 or 2)
+            # ==========================================
+            if message_body in ["1", "2"]:
+                mode = "B&W" if message_body == "1" else "Color"
+                price = PRICE_BW if mode == "B&W" else PRICE_COLOR
+
+                # 🔥 Send to n8n
+                if N8N_WEBHOOK_URL:
+                    requests.post(N8N_WEBHOOK_URL, json={
+                        "user": from_number,
+                        "color": mode,
+                        "copies": 1,
+                        "total_price": price
+                    })
+
+                reply = (
+                    f"✅ Sent to printer!\n\n"
+                    f"🎨 Mode: {mode}\n"
+                    f"🖨️ Copies: 1\n"
+                    f"💰 Price: ₹{price}\n\n"
+                    f"Collect at counter."
+                )
+
+                send_whatsapp_message(from_number, reply)
+
+                return HttpResponse("OK")
+
+            # ==========================================
+            # DEFAULT RESPONSE
+            # ==========================================
+            send_whatsapp_message(
+                from_number,
+                "Send a file to start printing 📄"
+            )
+
+            return HttpResponse("OK")
+
+        except Exception as e:
+            print("❌ ERROR:", str(e), flush=True)
+            print(traceback.format_exc(), flush=True)
+            return HttpResponse("ERROR", status=500)
+
+    return HttpResponse("Invalid", status=400)

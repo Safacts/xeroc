@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import homepage, upload_file, success_view, details, list_files_view, delete_file_view, download_file_view, password, confirm_upload, telegram_webhook
+from .views import homepage, upload_file, success_view, details, list_files_view, delete_file_view, download_file_view, password, confirm_upload, telegram_webhook, whatsapp_webhook
 
 urlpatterns = [
     path("", homepage, name="home"),
@@ -12,4 +12,5 @@ urlpatterns = [
     path('pass/', password, name='password'),
     path('confirm_upload/', confirm_upload, name='confirm_upload'),  # Add this line
     path('bot-webhook/', telegram_webhook, name='telegram_webhook'),
+    path('whatsapp-webhook/', whatsapp_webhook),
 ]
