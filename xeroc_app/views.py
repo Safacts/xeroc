@@ -203,3 +203,60 @@ def list_files_view(request):
     } for file in files]
 
     return JsonResponse(files_data, safe=False)
+
+
+
+
+import json
+import requests
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
+# TELEGRAM_BOT_TOKEN = '8681016928:AAHrDng60Co9rDMPXUEwkN8u-yaMzKYzsVU'
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+N8N_WEBHOOK_URL = os.environ.get("N8N_WEBHOOK_URL")# Your n8n link!
+
+@csrf_exempt
+def telegram_webhook(request):
+    if request.method == 'POST':
+        try:
+            # Catch the data Telegram sends us
+            update = json.loads(request.body.decode('utf-8'))
+            
+            # Check if it's a standard message
+            if 'message' in update:
+                chat_id = update['message']['chat']['id']
+                
+                # If they sent a document
+                if 'document' in update['message']:
+                    file_name = update['message']['document']['file_name']
+                    
+                    # 1. Send a quick reply to the user via Telegram API
+                    reply_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+                    requests.post(reply_url, json={
+                        "chat_id": chat_id,
+                        "text": f"Received {file_name}! Sending to printer..."
+                    })
+
+                    # 2. Forward the data to your n8n workflow!
+                    requests.post(N8N_WEBHOOK_URL, json={
+                        "file_name": file_name,
+                        "color": "B&W", # Hardcoded for this test
+                        "copies": 1     # Hardcoded for this test
+                    })
+
+                else:
+                    # If they just said "hello"
+                    reply_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+                    requests.post(reply_url, json={
+                        "chat_id": chat_id,
+                        "text": "Please upload a PDF or document to print."
+                    })
+
+            return JsonResponse({"status": "ok"})
+            
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse({"status": "error"})
+            
+    return JsonResponse({"status": "invalid request"}, status=400)
