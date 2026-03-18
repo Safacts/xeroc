@@ -204,53 +204,105 @@ def list_files_view(request):
 
     return JsonResponse(files_data, safe=False)
 
-
-
-
 import json
 import requests
+import os
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
-# TELEGRAM_BOT_TOKEN = '8681016928:AAHrDng60Co9rDMPXUEwkN8u-yaMzKYzsVU'
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
-N8N_WEBHOOK_URL = os.environ.get("N8N_WEBHOOK_URL")# Your n8n link!
+N8N_WEBHOOK_URL = os.environ.get("N8N_WEBHOOK_URL")
+
+# Define our allowed file types
+ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png']
 
 @csrf_exempt
 def telegram_webhook(request):
     if request.method == 'POST':
         try:
-            # Catch the data Telegram sends us
             update = json.loads(request.body.decode('utf-8'))
             
-            # Check if it's a standard message
+            # --- SCENARIO 1: USER CLICKS A BUTTON ---
+            if 'callback_query' in update:
+                callback_id = update['callback_query']['id']
+                chat_id = update['callback_query']['message']['chat']['id']
+                message_id = update['callback_query']['message']['message_id']
+                data = update['callback_query']['data']  # e.g., "bw_1"
+                
+                # Extract the file name we hid in the message text
+                text = update['callback_query']['message']['text']
+                file_name = text.split('\n')[0].replace("File received: ", "").strip()
+                
+                # Parse the button data
+                color = "Color" if "color" in data else "B&W"
+                copies = int(data.split('_')[1])
+                
+                # 1. Forward the actual print job to n8n
+                requests.post(N8N_WEBHOOK_URL, json={
+                    "file_name": file_name,
+                    "color": color,
+                    "copies": copies
+                })
+                
+                # 2. Tell Telegram to stop the button's loading circle
+                requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/answerCallbackQuery", json={
+                    "callback_query_id": callback_id
+                })
+                
+                # 3. Edit the original message to show a success receipt
+                receipt_text = f"✅ Sent to printer!\n\n📄 File: {file_name}\n🎨 Mode: {color}\n🖨️ Copies: {copies}\n\nPlease collect at the counter."
+                requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/editMessageText", json={
+                    "chat_id": chat_id,
+                    "message_id": message_id,
+                    "text": receipt_text
+                })
+                
+                return JsonResponse({"status": "ok"})
+
+            # --- SCENARIO 2: USER SENDS A MESSAGE OR FILE ---
             if 'message' in update:
                 chat_id = update['message']['chat']['id']
-                
-                # If they sent a document
+                file_name = None
+                is_valid_format = False
+
+                # Check if it's an uncompressed Document (PDF, Word, or uncompressed Image)
                 if 'document' in update['message']:
-                    file_name = update['message']['document']['file_name']
+                    file_name = update['message']['document'].get('file_name', 'unknown_file')
+                    ext = file_name.split('.')[-1].lower() if '.' in file_name else ''
                     
-                    # 1. Send a quick reply to the user via Telegram API
-                    reply_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-                    requests.post(reply_url, json={
+                    if ext in ALLOWED_EXTENSIONS:
+                        is_valid_format = True
+
+                # Check if it's a compressed Photo (Sent from phone gallery)
+                elif 'photo' in update['message']:
+                    file_name = "uploaded_image.jpg" # Telegram strips the name, so we assign one
+                    is_valid_format = True
+
+                # If the file passed the test, show the menu!
+                if is_valid_format:
+                    keyboard = {
+                        "inline_keyboard": [
+                            [
+                                {"text": "🔲 B&W (1 Copy)", "callback_data": "bw_1"},
+                                {"text": "🎨 Color (1 Copy)", "callback_data": "color_1"}
+                            ],
+                            [
+                                {"text": "🔲 B&W (2 Copies)", "callback_data": "bw_2"},
+                                {"text": "🎨 Color (2 Copies)", "callback_data": "color_2"}
+                            ]
+                        ]
+                    }
+                    requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", json={
                         "chat_id": chat_id,
-                        "text": f"Received {file_name}! Sending to printer..."
+                        "text": f"File received: {file_name}\n\nHow would you like to print this?",
+                        "reply_markup": keyboard
                     })
-
-                    # 2. Forward the data to your n8n workflow!
-                    requests.post(N8N_WEBHOOK_URL, json={
-                        "file_name": file_name,
-                        "color": "B&W", # Hardcoded for this test
-                        "copies": 1     # Hardcoded for this test
-                    })
-
+                
+                # If they sent text, or a disallowed file (like an MP4)
                 else:
-                    # If they just said "hello"
-                    reply_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-                    requests.post(reply_url, json={
+                    requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", json={
                         "chat_id": chat_id,
-                        "text": "Please upload a PDF or document to print."
+                        "text": "❌ Invalid file format.\n\nPlease upload a PDF, Word Document (.doc/.docx), or an Image to print."
                     })
 
             return JsonResponse({"status": "ok"})
